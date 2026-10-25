@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="18"
+        android:translateY="18">
+        <!-- Thermometer Outer Case -->
+        <path
+            android:fillColor="#FF9800"
+            android:pathData="M36,10 C31.58,10 28,13.58 28,18 L28,44.3 C24.38,47.05 22,51.4 22,56.3 C22,64.03 28.27,70.3 36,70.3 C43.73,70.3 50,64.03 50,56.3 C50,51.4 47.62,47.05 44,44.3 L44,18 C44,13.58 40.42,10 36,10 Z" />
+        <!-- Thermometer Inner Fluid -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M36,20 C34.9,20 34,20.9 34,22 L34,46 C31.6,47.8 30,50.7 30,54 C30,57.3 32.7,60 36,60 C39.3,60 42,57.3 42,54 C42,50.7 40.4,47.8 38,46 L38,22 C38,20.9 37.1,20 36,20 Z" />
+        <path
+            android:fillColor="#F44336"
+            android:pathData="M36,36 L36,48 C33.5,49.5 32,52 32,54 C32,56.2 33.8,58 36,58 C38.2,58 40,56.2 40,54 C40,52 38.5,49.5 36,48 Z" />
+        <!-- Tick marks -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M46,24 h6 v3 h-6 z M46,32 h6 v3 h-6 z M46,40 h6 v3 h-6 z" />
+    </group>
+</vector>

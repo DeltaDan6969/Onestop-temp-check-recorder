@@ -1,0 +1,65 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidDailyLog(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.date is string && data.date.size() >= 8 && data.date.size() <= 20 &&
+             data.dayOfWeek is string && data.dayOfWeek.size() <= 30 &&
+             data.checkedBy is string && data.checkedBy.size() <= 100 &&
+             data.itemsCount is int && data.itemsCount >= 0 && data.itemsCount <= 200 &&
+             data.items is list && data.items.size() <= 100 &&
+             (!('notes' in data) || data.notes == null || (data.notes is string && data.notes.size() <= 2000));
+    }
+
+    match /users/{userId}/daily_logs/{logId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(logId);
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(logId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'date', 'dayOfWeek', 'checkedBy', 'itemsCount', 'items', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'date', 'dayOfWeek', 'checkedBy', 'itemsCount', 'items', 'notes', 'createdAt', 'updatedAt']) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidDailyLog(incoming());
+
+      allow update: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(logId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidDailyLog(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['date', 'dayOfWeek', 'checkedBy', 'itemsCount', 'items', 'notes', 'updatedAt']);
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(logId);
+    }
+  }
+}

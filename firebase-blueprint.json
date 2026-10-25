@@ -1,0 +1,56 @@
+{
+  "entities": {
+    "DailyLog": {
+      "title": "DailyLog",
+      "description": "Daily food product core and T1 temperature log for food hygiene compliance",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns this temperature log"
+        },
+        "date": {
+          "type": "string",
+          "description": "Log date in YYYY-MM-DD format"
+        },
+        "dayOfWeek": {
+          "type": "string",
+          "description": "Day name such as Monday, Tuesday"
+        },
+        "checkedBy": {
+          "type": "string",
+          "description": "Name or initials of the inspector/staff member"
+        },
+        "itemsCount": {
+          "type": "integer",
+          "description": "Number of product items recorded"
+        },
+        "items": {
+          "type": "array",
+          "description": "List of product temperature readings"
+        },
+        "notes": {
+          "type": "string",
+          "description": "General daily log notes or comments"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Document creation timestamp via FieldValue.serverTimestamp()"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Document update timestamp via FieldValue.serverTimestamp()"
+        }
+      },
+      "required": ["userId", "date", "dayOfWeek", "checkedBy", "itemsCount", "items", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/daily_logs/{logId}": {
+      "schema": "DailyLog",
+      "description": "Daily temperature log documents scoped to each user"
+    }
+  }
+}

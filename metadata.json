@@ -1,0 +1,6 @@
+{
+  "name": "TempTracker",
+  "description": "Daily food temperature log and compliance tracking app with core & T1 temp checks, autofill randomizer, history search, and PDF/CSV export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

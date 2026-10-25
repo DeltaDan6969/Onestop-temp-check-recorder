@@ -1,0 +1,46 @@
+package com.example.data.model
+
+object DefaultProducts {
+    val ITEMS: List<ProductTempRecord> = listOf(
+        ProductTempRecord("p01", "bacon cheese turnover", "Bakes & Turnovers"),
+        ProductTempRecord("p02", "cheese onion lattice bake", "Bakes & Turnovers"),
+        ProductTempRecord("p03", "waldens 8\" sausage roll", "Sausage Rolls"),
+        ProductTempRecord("p04", "big 8\" sausage roll", "Sausage Rolls"),
+        ProductTempRecord("p05", "chicken tikka bake", "Bakes & Turnovers"),
+        ProductTempRecord("p06", "steak bake", "Bakes & Turnovers"),
+        ProductTempRecord("p07", "chicken mushroom bake", "Bakes & Turnovers"),
+        ProductTempRecord("p08", "cheese and ham bake", "Bakes & Turnovers"),
+        ProductTempRecord("p09", "chicken bacon bake", "Bakes & Turnovers"),
+        ProductTempRecord("p10", "pork chorizo roll", "Sausage Rolls"),
+        ProductTempRecord("p11", "chilli beef roll", "Sausage Rolls"),
+        ProductTempRecord("p12", "traditional pasty", "Pasties"),
+        ProductTempRecord("p13", "classic potato dog", "Hot Dogs & Savory"),
+        ProductTempRecord("p14", "fiery cheese potato", "Hot Dogs & Savory"),
+        ProductTempRecord("p15", "cheeseburger puff", "Puffs & Burgers"),
+        ProductTempRecord("p16", "tomato mozzarella bake", "Bakes & Turnovers"),
+        ProductTempRecord("p17", "steak and cheese bar", "Bakes & Bars"),
+        ProductTempRecord("p18", "sausage egg muffin", "Breakfast"),
+        ProductTempRecord("p19", "sausage rosti muffin", "Breakfast"),
+        ProductTempRecord("p20", "bacon baguette", "Breakfast & Baguettes"),
+        ProductTempRecord("p21", "cheeseburger", "Burgers"),
+        ProductTempRecord("p22", "ham and cheese toastie", "Toasties & Paninis"),
+        ProductTempRecord("p23", "bbq toastie", "Toasties & Paninis"),
+        ProductTempRecord("p24", "chicken burger", "Burgers"),
+        ProductTempRecord("p25", "ham and cheese panini", "Toasties & Paninis"),
+        ProductTempRecord("p26", "pesto mozzarella ciabatta", "Ciabattas & Wraps"),
+        ProductTempRecord("p27", "sausage ciabatta", "Ciabattas & Wraps"),
+        ProductTempRecord("p28", "all day breakfast wrap", "Ciabattas & Wraps"),
+        ProductTempRecord("p29", "meatball melt wrap", "Ciabattas & Wraps"),
+        ProductTempRecord("p30", "chicken fajita wrap", "Ciabattas & Wraps"),
+        ProductTempRecord("p31", "spicy chicken burrito", "Burritos & Wraps"),
+        ProductTempRecord("p32", "rollover classic hot dog", "Rollover Hot Dogs"),
+        ProductTempRecord("p33", "rollover breakfast hot dog", "Rollover Hot Dogs"),
+        ProductTempRecord("p34", "rollover chili cheese hot dog", "Rollover Hot Dogs"),
+        ProductTempRecord("p35", "hudson's ribuette", "Savory & Ribs"),
+        // Fry food entries as shown on the bottom of the sheet
+        ProductTempRecord("p36", "FRY FOOD: hash browns", "Fry Food"),
+        ProductTempRecord("p37", "FRY FOOD: french fries", "Fry Food"),
+        ProductTempRecord("p38", "FRY FOOD: chicken tenders", "Fry Food"),
+        ProductTempRecord("p39", "FRY FOOD: mozzarella sticks", "Fry Food")
+    )
+}
