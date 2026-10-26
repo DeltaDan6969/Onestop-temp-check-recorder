@@ -40,13 +40,13 @@ object ReportExporter {
             out.println("Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Compliance,Notes")
 
             for (record in records) {
-                val coreStr = record.coreTemp?.let { String.format(Locale.US, "%.1f", it) } ?: "N/A"
+                val coreStr = record.coreTemp?.let { "${it.toInt()}" } ?: "N/A"
                 val coreStatus = when {
                     record.coreTemp == null -> "Not Recorded"
                     record.isCoreCompliant -> "PASS"
                     else -> "FAIL (<200°C)"
                 }
-                val t1Str = record.t1Temp?.let { String.format(Locale.US, "%.1f", it) } ?: "N/A"
+                val t1Str = record.t1Temp?.let { "${it.toInt()}" } ?: "N/A"
                 val t1Status = when {
                     record.t1Temp == null -> "Not Recorded"
                     record.isT1Compliant -> "PASS"
@@ -88,9 +88,9 @@ object ReportExporter {
 
             for (log in logs) {
                 for (record in log.toProductRecords()) {
-                    val coreStr = record.coreTemp?.let { String.format(Locale.US, "%.1f", it) } ?: "N/A"
+                    val coreStr = record.coreTemp?.let { "${it.toInt()}" } ?: "N/A"
                     val coreStatus = if (record.isCoreCompliant) "PASS" else if (record.coreTemp != null) "FAIL" else "N/A"
-                    val t1Str = record.t1Temp?.let { String.format(Locale.US, "%.1f", it) } ?: "N/A"
+                    val t1Str = record.t1Temp?.let { "${it.toInt()}" } ?: "N/A"
                     val t1Status = if (record.isT1Compliant) "PASS" else if (record.t1Temp != null) "FAIL" else "N/A"
                     val overall = if (record.isCoreCompliant && record.isT1Compliant) "PASS" else "CHECK"
 
@@ -157,7 +157,7 @@ object ReportExporter {
         paint.color = Color.rgb(100, 116, 139)
         paint.textSize = 8.5f
         paint.typeface = Typeface.DEFAULT
-        canvas.drawText("Standard Targets: Core Temp >= 200.0°C | T1 Temp >= 81.0°C", 34f, 122f, paint)
+        canvas.drawText("Standard Targets: Core Temp >= 200°C | T1 Temp >= 81°C", 34f, 122f, paint)
 
         // Table Header
         paint.color = Color.rgb(226, 232, 240)
@@ -203,14 +203,14 @@ object ReportExporter {
             val truncatedCat = if (record.category.length > 18) record.category.take(16) + ".." else record.category
             canvas.drawText(truncatedCat, 230f, y, paint)
 
-            // Core Temp
-            val coreStr = record.coreTemp?.let { String.format(Locale.US, "%.1f°C", it) } ?: "-"
+            // Core Temp (whole number)
+            val coreStr = record.coreTemp?.let { "${it.toInt()}°C" } ?: "-"
             paint.color = if (record.isCoreCompliant) Color.rgb(46, 125, 50) else if (record.coreTemp != null) Color.rgb(211, 47, 47) else Color.GRAY
             paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             canvas.drawText(coreStr, 340f, y, paint)
 
-            // T1 Temp
-            val t1Str = record.t1Temp?.let { String.format(Locale.US, "%.1f°C", it) } ?: "-"
+            // T1 Temp (whole number)
+            val t1Str = record.t1Temp?.let { "${it.toInt()}°C" } ?: "-"
             paint.color = if (record.isT1Compliant) Color.rgb(46, 125, 50) else if (record.t1Temp != null) Color.rgb(211, 47, 47) else Color.GRAY
             canvas.drawText(t1Str, 415f, y, paint)
 

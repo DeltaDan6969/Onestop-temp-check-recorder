@@ -124,6 +124,15 @@
       background: #256628;
     }
 
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #B71C1C;
+    }
+
     .btn-outline {
       background: white;
       color: var(--text);
@@ -327,6 +336,13 @@
       flex-direction: column;
     }
 
+    .product-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     .product-name {
       font-size: 0.95rem;
       font-weight: 600;
@@ -336,6 +352,22 @@
     .product-cat {
       font-size: 0.75rem;
       color: var(--text-muted);
+    }
+
+    .edit-btn {
+      padding: 2px 7px;
+      font-size: 0.72rem;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: #F8FAFC;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .edit-btn:hover {
+      background: #E2E8F0;
+      color: var(--primary);
     }
 
     .temp-input-box {
@@ -423,11 +455,6 @@
       .product-row {
         grid-template-columns: 1fr;
         gap: 10px;
-      }
-      .temp-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
       }
     }
 
@@ -535,13 +562,12 @@
       opacity: 1;
     }
 
-    /* Print styling */
     @media print {
       body {
         background: white;
         padding-bottom: 0;
       }
-      header, .autofill-banner, .filter-bar, .bottom-bar, .dice-btn, .btn, .date-nav button {
+      header, .autofill-banner, .filter-bar, .bottom-bar, .dice-btn, .btn, .edit-btn, .date-nav button {
         display: none !important;
       }
       .control-card {
@@ -567,7 +593,7 @@
         <div class="brand-title">
           <span>🌡️</span> TempTracker Cloud
         </div>
-        <div class="brand-subtitle">Daily Food Temperature Check Sheet & Compliance</div>
+        <div class="brand-subtitle">Daily Food Temperature Check Sheet & Compliance (Whole Numbers °C)</div>
       </div>
       <div class="header-actions">
         <button class="btn btn-light" onclick="openGitHubModal()">
@@ -618,9 +644,9 @@
       </div>
     </div>
 
-    <!-- Autofill Action Bar -->
+    <!-- Autofill Action Bar (Whole Numbers) -->
     <div class="autofill-banner">
-      <span class="autofill-title">Autofill Options:</span>
+      <span class="autofill-title">Autofill (Whole Numbers):</span>
       <button class="btn btn-primary" onclick="autofillAllBoth()">
         ⚡ Autofill All (Core & T1)
       </button>
@@ -633,8 +659,8 @@
       <button class="btn btn-outline" onclick="clearAllTemps()">
         🔄 Reset All
       </button>
-      <button class="btn btn-outline" onclick="openAddProductModal()" style="margin-left: auto;">
-        ➕ Add Item
+      <button class="btn btn-success" onclick="openAddProductModal()" style="margin-left: auto;">
+        ➕ Add New Product
       </button>
     </div>
 
@@ -676,6 +702,60 @@
   <!-- Toast Notification -->
   <div id="toast">Log saved successfully</div>
 
+  <!-- Edit Product Modal -->
+  <div class="modal-overlay" id="editProductModal">
+    <div class="modal">
+      <div class="modal-title">
+        <span>✏️ Edit Product</span>
+        <button class="modal-close" onclick="closeEditProductModal()">✕</button>
+      </div>
+      <input type="hidden" id="editProductId">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Product Name</label>
+          <input type="text" id="editProductName" class="inspector-input" placeholder="e.g. steak bake">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Category</label>
+          <input type="text" id="editProductCategory" class="inspector-input" placeholder="e.g. Bakes & Turnovers, Fry Food">
+        </div>
+      </div>
+      <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-danger" onclick="deleteCurrentProduct()">
+          🗑️ Delete Product
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline" onclick="closeEditProductModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveEditedProduct()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div class="modal-overlay" id="addProductModal">
+    <div class="modal">
+      <div class="modal-title">
+        <span>➕ Add New Product</span>
+        <button class="modal-close" onclick="closeAddProductModal()">✕</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Product Name</label>
+          <input type="text" id="newProductName" class="inspector-input" placeholder="e.g. Potato Wedges, Onion Rings, Ribs">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Category</label>
+          <input type="text" id="newProductCategory" class="inspector-input" value="Fry Food" placeholder="e.g. Fry Food, Breakfast, Bakes">
+        </div>
+      </div>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-outline" onclick="closeAddProductModal()">Cancel</button>
+        <button class="btn btn-success" onclick="submitNewProduct()">Add to Sheet</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Export Modal -->
   <div class="modal-overlay" id="exportModal">
     <div class="modal">
@@ -684,7 +764,7 @@
         <button class="modal-close" onclick="closeExportModal()">✕</button>
       </div>
       <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
-        Generate formal food safety hygiene audit sheets for health inspection compliance:
+        Generate formal food safety hygiene audit sheets (whole numbers °C):
       </p>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -772,33 +852,9 @@
     </div>
   </div>
 
-  <!-- Add Item Modal -->
-  <div class="modal-overlay" id="addProductModal">
-    <div class="modal">
-      <div class="modal-title">
-        <span>Add Product / Fry Food Item</span>
-        <button class="modal-close" onclick="closeAddProductModal()">✕</button>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <div>
-          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Product Name</label>
-          <input type="text" id="newProductName" class="inspector-input" placeholder="e.g. Potato Wedges, Onion Rings">
-        </div>
-        <div>
-          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Category</label>
-          <input type="text" id="newProductCategory" class="inspector-input" value="Fry Food">
-        </div>
-      </div>
-      <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
-        <button class="btn btn-outline" onclick="closeAddProductModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="submitNewProduct()">Add to Sheet</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     // Initial products list from photo
-    const DEFAULT_PRODUCTS = [
+    const INITIAL_DEFAULT_PRODUCTS = [
       { id: "p01", name: "bacon cheese turnover", category: "Bakes & Turnovers" },
       { id: "p02", name: "cheese onion lattice bake", category: "Bakes & Turnovers" },
       { id: "p03", name: "waldens 8\" sausage roll", category: "Sausage Rolls" },
@@ -840,10 +896,21 @@
       { id: "p39", name: "FRY FOOD: mozzarella sticks", category: "Fry Food" }
     ];
 
+    function getProductCatalog() {
+      const saved = localStorage.getItem("temp_master_catalog");
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+      return INITIAL_DEFAULT_PRODUCTS;
+    }
+
+    function saveProductCatalog(catalog) {
+      localStorage.setItem("temp_master_catalog", JSON.stringify(catalog));
+    }
+
     let currentRecords = [];
     let activeCategory = "All";
 
-    // Initialize date
     function getTodayString() {
       const today = new Date();
       return today.toISOString().split("T")[0];
@@ -881,19 +948,28 @@
     function loadDateLog(dateStr) {
       localStorage.setItem("temp_last_date", dateStr);
       const raw = localStorage.getItem("temp_log_" + dateStr);
+      const catalog = getProductCatalog();
+
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
-          currentRecords = parsed.records || [];
+          const savedList = parsed.records || [];
+          // Ensure all items use integer whole numbers
+          currentRecords = savedList.map(r => ({
+            ...r,
+            coreTemp: r.coreTemp !== null && r.coreTemp !== undefined ? Math.round(r.coreTemp) : null,
+            t1Temp: r.t1Temp !== null && r.t1Temp !== undefined ? Math.round(r.t1Temp) : null
+          }));
           if (parsed.checkedBy) {
             document.getElementById("checkedBy").value = parsed.checkedBy;
           }
         } catch (e) {
-          currentRecords = DEFAULT_PRODUCTS.map(p => ({ ...p, coreTemp: null, t1Temp: null }));
+          currentRecords = catalog.map(p => ({ ...p, coreTemp: null, t1Temp: null }));
         }
       } else {
-        currentRecords = DEFAULT_PRODUCTS.map(p => ({ ...p, coreTemp: null, t1Temp: null }));
+        currentRecords = catalog.map(p => ({ ...p, coreTemp: null, t1Temp: null }));
       }
+      renderCategoryPills();
       renderProducts();
       updateStats();
       updateSaveStatus(true);
@@ -913,7 +989,6 @@
 
       localStorage.setItem("temp_log_" + date, JSON.stringify(payload));
 
-      // Update history index
       let historyIndex = JSON.parse(localStorage.getItem("temp_history_index") || "[]");
       if (!historyIndex.includes(date)) {
         historyIndex.push(date);
@@ -940,40 +1015,38 @@
       }
     }
 
-    // Autofill functions
+    /* WHOLE NUMBER AUTOFILL ACTIONS */
     function autofillAllCore() {
       currentRecords.forEach(item => {
-        // Random between 200.0 and 210.0
-        const rand = (200 + Math.random() * 10).toFixed(1);
-        item.coreTemp = parseFloat(rand);
+        // Integer between 200 and 210 inclusive
+        item.coreTemp = Math.floor(200 + Math.random() * 11);
       });
       renderProducts();
       updateStats();
       saveDayLog(false);
-      showToast("🎲 Randomized Core temperatures (200°C – 210°C)");
+      showToast("🎲 Core temperatures randomized (200°C – 210°C whole numbers)");
     }
 
     function autofillAllT1() {
       currentRecords.forEach(item => {
-        // Random between 81.0 and 100.0
-        const rand = (81 + Math.random() * 19).toFixed(1);
-        item.t1Temp = parseFloat(rand);
+        // Integer between 81 and 100 inclusive
+        item.t1Temp = Math.floor(81 + Math.random() * 20);
       });
       renderProducts();
       updateStats();
       saveDayLog(false);
-      showToast("🎲 Randomized T1 temperatures (81°C – 100°C)");
+      showToast("🎲 T1 temperatures randomized (81°C – 100°C whole numbers)");
     }
 
     function autofillAllBoth() {
       currentRecords.forEach(item => {
-        item.coreTemp = parseFloat((200 + Math.random() * 10).toFixed(1));
-        item.t1Temp = parseFloat((81 + Math.random() * 19).toFixed(1));
+        item.coreTemp = Math.floor(200 + Math.random() * 11);
+        item.t1Temp = Math.floor(81 + Math.random() * 20);
       });
       renderProducts();
       updateStats();
       saveDayLog(false);
-      showToast("⚡ Autofilled both Core & T1 for all items!");
+      showToast("⚡ Autofilled both Core & T1 whole numbers!");
     }
 
     function clearAllTemps() {
@@ -992,9 +1065,9 @@
     function randomizeSingleCore(id) {
       const item = currentRecords.find(p => p.id === id);
       if (item) {
-        item.coreTemp = parseFloat((200 + Math.random() * 10).toFixed(1));
+        item.coreTemp = Math.floor(200 + Math.random() * 11);
         const input = document.getElementById("core_" + id);
-        if (input) input.value = item.coreTemp.toFixed(1);
+        if (input) input.value = item.coreTemp;
         updateRowStatus(id);
         updateStats();
         markUnsaved();
@@ -1004,9 +1077,9 @@
     function randomizeSingleT1(id) {
       const item = currentRecords.find(p => p.id === id);
       if (item) {
-        item.t1Temp = parseFloat((81 + Math.random() * 19).toFixed(1));
+        item.t1Temp = Math.floor(81 + Math.random() * 20);
         const input = document.getElementById("t1_" + id);
-        if (input) input.value = item.t1Temp.toFixed(1);
+        if (input) input.value = item.t1Temp;
         updateRowStatus(id);
         updateStats();
         markUnsaved();
@@ -1016,7 +1089,7 @@
     function onCoreInput(id, val) {
       const item = currentRecords.find(p => p.id === id);
       if (item) {
-        item.coreTemp = val.trim() === "" ? null : parseFloat(val);
+        item.coreTemp = val.trim() === "" ? null : parseInt(val, 10);
         updateRowStatus(id);
         updateStats();
         markUnsaved();
@@ -1026,7 +1099,7 @@
     function onT1Input(id, val) {
       const item = currentRecords.find(p => p.id === id);
       if (item) {
-        item.t1Temp = val.trim() === "" ? null : parseFloat(val);
+        item.t1Temp = val.trim() === "" ? null : parseInt(val, 10);
         updateRowStatus(id);
         updateStats();
         markUnsaved();
@@ -1040,8 +1113,8 @@
       const badge = document.getElementById("badge_" + id);
       if (!badge) return;
 
-      const corePass = item.coreTemp !== null && item.coreTemp >= 200.0;
-      const t1Pass = item.t1Temp !== null && item.t1Temp >= 81.0;
+      const corePass = item.coreTemp !== null && item.coreTemp >= 200;
+      const t1Pass = item.t1Temp !== null && item.t1Temp >= 81;
       const hasAny = item.coreTemp !== null || item.t1Temp !== null;
 
       if (!hasAny) {
@@ -1059,7 +1132,7 @@
     function updateStats() {
       const total = currentRecords.length;
       const recorded = currentRecords.filter(r => r.coreTemp !== null || r.t1Temp !== null).length;
-      const compliant = currentRecords.filter(r => r.coreTemp !== null && r.coreTemp >= 200.0 && r.t1Temp !== null && r.t1Temp >= 81.0).length;
+      const compliant = currentRecords.filter(r => r.coreTemp !== null && r.coreTemp >= 200 && r.t1Temp !== null && r.t1Temp >= 81).length;
 
       document.getElementById("statTotal").textContent = total;
       document.getElementById("statRecorded").textContent = `${recorded} / ${total}`;
@@ -1067,7 +1140,7 @@
       document.getElementById("statPassRate").textContent = total > 0 ? Math.round((compliant / total) * 100) + "%" : "0%";
     }
 
-    // Rendering Products
+    // Render Products List
     function renderProducts() {
       const search = (document.getElementById("searchInput").value || "").toLowerCase();
       const container = document.getElementById("productsList");
@@ -1084,8 +1157,8 @@
       }
 
       container.innerHTML = filtered.map(item => {
-        const corePass = item.coreTemp !== null && item.coreTemp >= 200.0;
-        const t1Pass = item.t1Temp !== null && item.t1Temp >= 81.0;
+        const corePass = item.coreTemp !== null && item.coreTemp >= 200;
+        const t1Pass = item.t1Temp !== null && item.t1Temp >= 81;
         const hasAny = item.coreTemp !== null || item.t1Temp !== null;
 
         let badgeClass = "badge-pending";
@@ -1100,39 +1173,42 @@
           }
         }
 
-        const coreVal = item.coreTemp !== null ? item.coreTemp.toFixed(1) : "";
-        const t1Val = item.t1Temp !== null ? item.t1Temp.toFixed(1) : "";
+        const coreVal = item.coreTemp !== null ? Math.round(item.coreTemp) : "";
+        const t1Val = item.t1Temp !== null ? Math.round(item.t1Temp) : "";
 
         return `
-          <div class="product-row">
+          <div class="product-row" id="row_${item.id}">
             <div class="product-info">
-              <span class="product-name">${item.name}</span>
+              <div class="product-name-row">
+                <span class="product-name">${item.name}</span>
+                <button class="edit-btn" onclick="openEditProductModal('${item.id}')" title="Edit product name and category">✏️ Edit</button>
+              </div>
               <span class="product-cat">${item.category}</span>
             </div>
 
             <div class="temp-input-box">
               <div class="temp-label">
                 <span>Core (≥200°C)</span>
-                <span style="color: ${corePass ? 'var(--secondary)' : (item.coreTemp ? 'var(--danger)' : 'var(--text-muted)')};">
+                <span style="color: ${corePass ? 'var(--secondary)' : (item.coreTemp ? 'var(--danger)' : 'var(--text-muted)')}; font-weight: 700;">
                   ${item.coreTemp !== null ? (corePass ? '✓ OK' : '✗ Low') : ''}
                 </span>
               </div>
               <div class="input-group">
-                <input type="number" step="0.1" id="core_${item.id}" class="temp-input" value="${coreVal}" placeholder="205.0" oninput="onCoreInput('${item.id}', this.value)">
-                <button class="dice-btn" title="Randomize Core (200-210°C)" onclick="randomizeSingleCore('${item.id}')">🎲</button>
+                <input type="number" step="1" id="core_${item.id}" class="temp-input" value="${coreVal}" placeholder="205" oninput="onCoreInput('${item.id}', this.value)">
+                <button class="dice-btn" title="Randomize Core (200-210°C whole number)" onclick="randomizeSingleCore('${item.id}')">🎲</button>
               </div>
             </div>
 
             <div class="temp-input-box">
               <div class="temp-label">
                 <span>T1 (≥81°C)</span>
-                <span style="color: ${t1Pass ? 'var(--secondary)' : (item.t1Temp ? 'var(--danger)' : 'var(--text-muted)')};">
+                <span style="color: ${t1Pass ? 'var(--secondary)' : (item.t1Temp ? 'var(--danger)' : 'var(--text-muted)')}; font-weight: 700;">
                   ${item.t1Temp !== null ? (t1Pass ? '✓ OK' : '✗ Low') : ''}
                 </span>
               </div>
               <div class="input-group">
-                <input type="number" step="0.1" id="t1_${item.id}" class="temp-input" value="${t1Val}" placeholder="88.0" oninput="onT1Input('${item.id}', this.value)">
-                <button class="dice-btn" title="Randomize T1 (81-100°C)" onclick="randomizeSingleT1('${item.id}')">🎲</button>
+                <input type="number" step="1" id="t1_${item.id}" class="temp-input" value="${t1Val}" placeholder="88" oninput="onT1Input('${item.id}', this.value)">
+                <button class="dice-btn" title="Randomize T1 (81-100°C whole number)" onclick="randomizeSingleT1('${item.id}')">🎲</button>
               </div>
             </div>
 
@@ -1145,7 +1221,11 @@
     }
 
     function renderCategoryPills() {
-      const categories = ["All", "Bakes & Turnovers", "Sausage Rolls", "Breakfast", "Burgers", "Toasties & Paninis", "Ciabattas & Wraps", "Rollover Hot Dogs", "Pasties", "Fry Food"];
+      const categoriesSet = new Set(["All"]);
+      currentRecords.forEach(r => {
+        if (r.category) categoriesSet.add(r.category);
+      });
+      const categories = Array.from(categoriesSet);
       const container = document.getElementById("categoryPills");
       container.innerHTML = categories.map(cat => `
         <button class="pill ${cat === activeCategory ? 'active' : ''}" onclick="setCategory('${cat}')">${cat}</button>
@@ -1158,13 +1238,122 @@
       renderProducts();
     }
 
-    // Modal helpers
+    /* EDIT PRODUCT MODAL */
+    function openEditProductModal(id) {
+      const item = currentRecords.find(p => p.id === id);
+      if (!item) return;
+
+      document.getElementById("editProductId").value = item.id;
+      document.getElementById("editProductName").value = item.name;
+      document.getElementById("editProductCategory").value = item.category;
+
+      document.getElementById("editProductModal").classList.add("open");
+    }
+
+    function closeEditProductModal() {
+      document.getElementById("editProductModal").classList.remove("open");
+    }
+
+    function saveEditedProduct() {
+      const id = document.getElementById("editProductId").value;
+      const newName = document.getElementById("editProductName").value.trim();
+      const newCat = document.getElementById("editProductCategory").value.trim() || "Standard";
+
+      if (!newName) {
+        alert("Product name cannot be empty");
+        return;
+      }
+
+      // Update current day
+      const item = currentRecords.find(p => p.id === id);
+      if (item) {
+        item.name = newName;
+        item.category = newCat;
+      }
+
+      // Update master catalog
+      const catalog = getProductCatalog();
+      const catItem = catalog.find(p => p.id === id);
+      if (catItem) {
+        catItem.name = newName;
+        catItem.category = newCat;
+      } else {
+        catalog.push({ id, name: newName, category: newCat });
+      }
+      saveProductCatalog(catalog);
+
+      closeEditProductModal();
+      renderCategoryPills();
+      renderProducts();
+      saveDayLog(false);
+      showToast(`Updated "${newName}"`);
+    }
+
+    function deleteCurrentProduct() {
+      const id = document.getElementById("editProductId").value;
+      const item = currentRecords.find(p => p.id === id);
+      const name = item ? item.name : "Product";
+
+      if (confirm(`Are you sure you want to delete "${name}" from this sheet and catalog?`)) {
+        currentRecords = currentRecords.filter(p => p.id !== id);
+
+        const catalog = getProductCatalog().filter(p => p.id !== id);
+        saveProductCatalog(catalog);
+
+        closeEditProductModal();
+        renderCategoryPills();
+        renderProducts();
+        updateStats();
+        saveDayLog(false);
+        showToast(`Deleted "${name}"`);
+      }
+    }
+
+    /* ADD PRODUCT MODAL */
+    function openAddProductModal() {
+      document.getElementById("newProductName").value = "";
+      document.getElementById("newProductCategory").value = "Fry Food";
+      document.getElementById("addProductModal").classList.add("open");
+    }
+
+    function closeAddProductModal() {
+      document.getElementById("addProductModal").classList.remove("open");
+    }
+
+    function submitNewProduct() {
+      const name = document.getElementById("newProductName").value.trim();
+      const cat = document.getElementById("newProductCategory").value.trim() || "Fry Food";
+      if (!name) return;
+
+      const newId = "prod_" + Date.now();
+      const newProd = {
+        id: newId,
+        name: name,
+        category: cat,
+        coreTemp: null,
+        t1Temp: null
+      };
+
+      currentRecords.push(newProd);
+
+      // Save to master catalog
+      const catalog = getProductCatalog();
+      catalog.push({ id: newId, name: name, category: cat });
+      saveProductCatalog(catalog);
+
+      closeAddProductModal();
+      renderCategoryPills();
+      renderProducts();
+      updateStats();
+      saveDayLog(false);
+      showToast(`Added "${name}"`);
+    }
+
+    // Modal open/close helpers
     function openExportModal() { document.getElementById("exportModal").classList.add("open"); }
     function closeExportModal() { document.getElementById("exportModal").classList.remove("open"); }
     function openGitHubModal() { document.getElementById("githubModal").classList.add("open"); }
     function closeGitHubModal() { document.getElementById("githubModal").classList.remove("open"); }
-    function openAddProductModal() { document.getElementById("addProductModal").classList.add("open"); }
-    function closeAddProductModal() { document.getElementById("addProductModal").classList.remove("open"); }
 
     function openHistoryModal() {
       const container = document.getElementById("historyList");
@@ -1196,42 +1385,20 @@
       closeHistoryModal();
     }
 
-    function submitNewProduct() {
-      const name = document.getElementById("newProductName").value.trim();
-      const cat = document.getElementById("newProductCategory").value.trim() || "Fry Food";
-      if (!name) return;
-
-      const newId = "custom_" + Date.now();
-      currentRecords.push({
-        id: newId,
-        name: name,
-        category: cat,
-        coreTemp: null,
-        t1Temp: null
-      });
-
-      closeAddProductModal();
-      document.getElementById("newProductName").value = "";
-      renderProducts();
-      updateStats();
-      saveDayLog(false);
-      showToast(`Added "${name}"`);
-    }
-
-    // CSV and PDF Exports
+    /* CSV and PDF Exports */
     function exportToCsv() {
       const date = document.getElementById("logDate").value;
       const checkedBy = document.getElementById("checkedBy").value || "Staff Member";
 
-      let csv = "DAILY FOOD TEMPERATURE COMPLIANCE REPORT\n";
+      let csv = "DAILY FOOD TEMPERATURE COMPLIANCE REPORT (WHOLE NUMBERS)\n";
       csv += `Date,${date}\n`;
       csv += `Checked By,"${checkedBy.replace(/"/g, '""')}"\n\n`;
       csv += "Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Result\n";
 
       currentRecords.forEach(r => {
-        const core = r.coreTemp !== null ? r.coreTemp.toFixed(1) : "N/A";
+        const core = r.coreTemp !== null ? Math.round(r.coreTemp) : "N/A";
         const coreStatus = r.coreTemp !== null ? (r.coreTemp >= 200 ? "PASS" : "FAIL") : "NOT RECORDED";
-        const t1 = r.t1Temp !== null ? r.t1Temp.toFixed(1) : "N/A";
+        const t1 = r.t1Temp !== null ? Math.round(r.t1Temp) : "N/A";
         const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL") : "NOT RECORDED";
         const result = (r.coreTemp >= 200 && r.t1Temp >= 81) ? "PASS" : "CHECK";
 
@@ -1240,7 +1407,7 @@
 
       downloadFile(csv, `Temperature_Report_${date}.csv`, "text/csv");
       closeExportModal();
-      showToast("Downloaded CSV report");
+      showToast("Downloaded CSV report (whole numbers)");
     }
 
     function exportAllHistoryCsv() {
@@ -1250,7 +1417,7 @@
         return;
       }
 
-      let csv = "HISTORICAL FOOD TEMPERATURE LOGS\n\n";
+      let csv = "HISTORICAL FOOD TEMPERATURE LOGS (WHOLE NUMBERS)\n\n";
       csv += "Date,Checked By,Product Name,Category,Core Temp (°C),Core Status,T1 Temp (°C),T1 Status,Result\n";
 
       historyIndex.forEach(d => {
@@ -1259,9 +1426,9 @@
         const by = data.checkedBy || "";
 
         records.forEach(r => {
-          const core = r.coreTemp !== null ? r.coreTemp.toFixed(1) : "N/A";
+          const core = r.coreTemp !== null ? Math.round(r.coreTemp) : "N/A";
           const coreStatus = r.coreTemp !== null ? (r.coreTemp >= 200 ? "PASS" : "FAIL") : "N/A";
-          const t1 = r.t1Temp !== null ? r.t1Temp.toFixed(1) : "N/A";
+          const t1 = r.t1Temp !== null ? Math.round(r.t1Temp) : "N/A";
           const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL") : "N/A";
           const result = (r.coreTemp >= 200 && r.t1Temp >= 81) ? "PASS" : "CHECK";
 

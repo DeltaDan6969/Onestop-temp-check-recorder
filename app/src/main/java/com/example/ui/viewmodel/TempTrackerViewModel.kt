@@ -150,59 +150,70 @@ class TempTrackerViewModel(
     }
 
     /**
-     * Randomize all products Core temperature between 200.0 and 210.0 °C
+     * Randomize all products Core temperature between 200 and 210 °C as whole numbers
      */
     fun randomizeAllCoreTemps() {
         val updated = _uiState.value.records.map { record ->
-            val randomCore = 200.0 + Random.nextInt(0, 101) / 10.0 // 200.0 - 210.0
+            val randomCore = Random.nextInt(200, 211).toDouble() // 200 to 210 whole number
             record.copy(coreTemp = randomCore)
         }
         _uiState.value = _uiState.value.copy(
             records = updated,
             isSavedToCloud = false,
-            userMessage = "Randomized Core temps (200°C - 210°C) for all ${updated.size} items"
+            userMessage = "Randomized Core temps (200°C - 210°C whole numbers) for all ${updated.size} items"
         )
     }
 
     /**
-     * Randomize all products T1 temperature between 81.0 and 100.0 °C
+     * Randomize all products T1 temperature between 81 and 100 °C as whole numbers
      */
     fun randomizeAllT1Temps() {
         val updated = _uiState.value.records.map { record ->
-            val randomT1 = 81.0 + Random.nextInt(0, 191) / 10.0 // 81.0 - 100.0
+            val randomT1 = Random.nextInt(81, 101).toDouble() // 81 to 100 whole number
             record.copy(t1Temp = randomT1)
         }
         _uiState.value = _uiState.value.copy(
             records = updated,
             isSavedToCloud = false,
-            userMessage = "Randomized T1 temps (81°C - 100°C) for all ${updated.size} items"
+            userMessage = "Randomized T1 temps (81°C - 100°C whole numbers) for all ${updated.size} items"
         )
     }
 
     /**
-     * Randomize both Core and T1 temperatures for all items
+     * Randomize both Core and T1 temperatures for all items as whole numbers
      */
     fun randomizeBothAll() {
         val updated = _uiState.value.records.map { record ->
-            val randomCore = 200.0 + Random.nextInt(0, 101) / 10.0
-            val randomT1 = 81.0 + Random.nextInt(0, 191) / 10.0
+            val randomCore = Random.nextInt(200, 211).toDouble()
+            val randomT1 = Random.nextInt(81, 101).toDouble()
             record.copy(coreTemp = randomCore, t1Temp = randomT1)
         }
         _uiState.value = _uiState.value.copy(
             records = updated,
             isSavedToCloud = false,
-            userMessage = "Autofilled both Core (200-210°C) & T1 (81-100°C) for all items"
+            userMessage = "Autofilled both Core (200-210°C) & T1 (81-100°C) whole numbers for all items"
         )
     }
 
     fun randomizeSingleCore(productId: String) {
-        val randomCore = 200.0 + Random.nextInt(0, 101) / 10.0
+        val randomCore = Random.nextInt(200, 211).toDouble()
         updateProductCore(productId, randomCore)
     }
 
     fun randomizeSingleT1(productId: String) {
-        val randomT1 = 81.0 + Random.nextInt(0, 191) / 10.0
+        val randomT1 = Random.nextInt(81, 101).toDouble()
         updateProductT1(productId, randomT1)
+    }
+
+    fun editProduct(productId: String, newName: String, newCategory: String) {
+        val updated = _uiState.value.records.map {
+            if (it.productId == productId) it.copy(productName = newName.trim(), category = newCategory.trim()) else it
+        }
+        _uiState.value = _uiState.value.copy(
+            records = updated,
+            isSavedToCloud = false,
+            userMessage = "Updated \"$newName\""
+        )
     }
 
     fun updateProductCore(productId: String, temp: Double?) {

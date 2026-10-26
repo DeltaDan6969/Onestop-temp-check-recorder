@@ -115,6 +115,7 @@ fun DailyLogScreen(
     var showGitHubDialog by remember { mutableStateOf(false) }
     var showAddProductDialog by remember { mutableStateOf(false) }
     var showUserMenu by remember { mutableStateOf(false) }
+    var editingRecord by remember { mutableStateOf<ProductTempRecord?>(null) }
 
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let {
@@ -313,6 +314,7 @@ fun DailyLogScreen(
                         onRandomizeCore = { viewModel.randomizeSingleCore(record.productId) },
                         onRandomizeT1 = { viewModel.randomizeSingleT1(record.productId) },
                         onUpdateNotes = { viewModel.updateProductNotes(record.productId, it) },
+                        onEdit = { editingRecord = record },
                         onDelete = { viewModel.deleteProduct(record.productId) }
                     )
                 }
@@ -348,6 +350,21 @@ fun DailyLogScreen(
         AddProductDialog(
             onDismiss = { showAddProductDialog = false },
             onAdd = { name, cat -> viewModel.addCustomProduct(name, cat) }
+        )
+    }
+
+    editingRecord?.let { targetRecord ->
+        EditProductDialog(
+            record = targetRecord,
+            onDismiss = { editingRecord = null },
+            onSave = { newName, newCategory ->
+                viewModel.editProduct(targetRecord.productId, newName, newCategory)
+                editingRecord = null
+            },
+            onDelete = {
+                viewModel.deleteProduct(targetRecord.productId)
+                editingRecord = null
+            }
         )
     }
 }
@@ -714,13 +731,14 @@ private fun ProductTempCard(
     onRandomizeCore: () -> Unit,
     onRandomizeT1: () -> Unit,
     onUpdateNotes: (String) -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     var coreInput by remember(record.coreTemp) {
-        mutableStateOf(record.coreTemp?.let { String.format(Locale.US, "%.1f", it) } ?: "")
+        mutableStateOf(record.coreTemp?.toInt()?.toString() ?: "")
     }
     var t1Input by remember(record.t1Temp) {
-        mutableStateOf(record.t1Temp?.let { String.format(Locale.US, "%.1f", it) } ?: "")
+        mutableStateOf(record.t1Temp?.toInt()?.toString() ?: "")
     }
     var showNotes by remember { mutableStateOf(record.notes.isNotEmpty()) }
     var notesInput by remember(record.notes) { mutableStateOf(record.notes) }
@@ -734,7 +752,7 @@ private fun ProductTempCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Header Row: Product Name + Category + Delete if custom
+            // Header Row: Product Name + Category + Edit + Delete
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -755,49 +773,62 @@ private fun ProductTempCard(
                     )
                 }
 
-                // Overall badge
-                val overallPass = record.isCoreCompliant && record.isT1Compliant
-                val hasAny = record.hasAnyTemp
-                if (hasAny) {
-                    Surface(
-                        color = if (overallPass) GreenCompliantLight else RedNonCompliantLight,
-                        shape = RoundedCornerShape(6.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Overall badge
+                    val overallPass = record.isCoreCompliant && record.isT1Compliant
+                    val hasAny = record.hasAnyTemp
+                    if (hasAny) {
+                        Surface(
+                            color = if (overallPass) GreenCompliantLight else RedNonCompliantLight,
+                            shape = RoundedCornerShape(6.dp)
                         ) {
-                            Icon(
-                                imageVector = if (overallPass) Icons.Default.CheckCircle else Icons.Default.Warning,
-                                contentDescription = null,
-                                tint = if (overallPass) GreenCompliant else RedNonCompliant,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = if (overallPass) "PASS" else "CHECK",
-                                color = if (overallPass) GreenCompliant else RedNonCompliant,
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = if (overallPass) Icons.Default.CheckCircle else Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint = if (overallPass) GreenCompliant else RedNonCompliant,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (overallPass) "PASS" else "CHECK",
+                                    color = if (overallPass) GreenCompliant else RedNonCompliant,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
                         }
+                        Spacer(modifier = Modifier.width(6.dp))
                     }
-                }
 
-                if (record.productId.startsWith("custom_")) {
-                    IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                    // Edit product button
+                    IconButton(onClick = onEdit, modifier = Modifier.size(30.dp)) {
                         Icon(
-                            Icons.Default.DeleteOutline,
-                            contentDescription = "Delete item",
-                            tint = MaterialTheme.colorScheme.error,
+                            Icons.Default.Edit,
+                            contentDescription = "Edit product details",
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
+                    }
+
+                    if (record.productId.startsWith("custom_")) {
+                        IconButton(onClick = onDelete, modifier = Modifier.size(30.dp)) {
+                            Icon(
+                                Icons.Default.DeleteOutline,
+                                contentDescription = "Delete item",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Two Column Temp inputs: Core & T1
+            // Two Column Temp inputs: Core & T1 (Whole Numbers only)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -829,13 +860,14 @@ private fun ProductTempCard(
                     OutlinedTextField(
                         value = coreInput,
                         onValueChange = { input ->
-                            coreInput = input
-                            val parsed = input.toDoubleOrNull()
+                            val digits = input.filter { it.isDigit() }
+                            coreInput = digits
+                            val parsed = digits.toIntOrNull()?.toDouble()
                             onUpdateCore(parsed)
                         },
-                        placeholder = { Text("205.0") },
+                        placeholder = { Text("205") },
                         suffix = { Text("°C") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
@@ -879,13 +911,14 @@ private fun ProductTempCard(
                     OutlinedTextField(
                         value = t1Input,
                         onValueChange = { input ->
-                            t1Input = input
-                            val parsed = input.toDoubleOrNull()
+                            val digits = input.filter { it.isDigit() }
+                            t1Input = digits
+                            val parsed = digits.toIntOrNull()?.toDouble()
                             onUpdateT1(parsed)
                         },
-                        placeholder = { Text("88.5") },
+                        placeholder = { Text("88") },
                         suffix = { Text("°C") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
