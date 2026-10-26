@@ -4,8 +4,8 @@ object DefaultProducts {
     val ITEMS: List<ProductTempRecord> = listOf(
         ProductTempRecord("p01", "bacon cheese turnover", "Bakes & Turnovers"),
         ProductTempRecord("p02", "cheese onion lattice bake", "Bakes & Turnovers"),
-        ProductTempRecord("p03", "waldens 8\" sausage roll", "Sausage Rolls"),
-        ProductTempRecord("p04", "big 8\" sausage roll", "Sausage Rolls"),
+        ProductTempRecord("p03", "waldens 8-inch sausage roll", "Sausage Rolls"),
+        ProductTempRecord("p04", "big 8-inch sausage roll", "Sausage Rolls"),
         ProductTempRecord("p05", "chicken tikka bake", "Bakes & Turnovers"),
         ProductTempRecord("p06", "steak bake", "Bakes & Turnovers"),
         ProductTempRecord("p07", "chicken mushroom bake", "Bakes & Turnovers"),

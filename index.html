@@ -858,8 +858,8 @@
     const INITIAL_DEFAULT_PRODUCTS = [
       { id: "p01", name: "bacon cheese turnover", category: "Bakes & Turnovers" },
       { id: "p02", name: "cheese onion lattice bake", category: "Bakes & Turnovers" },
-      { id: "p03", name: "waldens 8\" sausage roll", category: "Sausage Rolls" },
-      { id: "p04", name: "big 8\" sausage roll", category: "Sausage Rolls" },
+      { id: "p03", name: "waldens 8-inch sausage roll", category: "Sausage Rolls" },
+      { id: "p04", name: "big 8-inch sausage roll", category: "Sausage Rolls" },
       { id: "p05", name: "chicken tikka bake", category: "Bakes & Turnovers" },
       { id: "p06", name: "steak bake", category: "Bakes & Turnovers" },
       { id: "p07", name: "chicken mushroom bake", category: "Bakes & Turnovers" },
@@ -897,12 +897,32 @@
       { id: "p39", name: "FRY FOOD: mozzarella sticks", category: "Fry Food" }
     ];
 
+    function sanitizeProductName(name) {
+      if (!name) return "";
+      return name.replace(/8"/g, '8-inch');
+    }
+
     function getProductCatalog() {
       const saved = localStorage.getItem("temp_master_catalog");
+      let catalog = INITIAL_DEFAULT_PRODUCTS;
       if (saved) {
-        try { return JSON.parse(saved); } catch (e) {}
+        try {
+          catalog = JSON.parse(saved);
+        } catch (e) {}
       }
-      return INITIAL_DEFAULT_PRODUCTS;
+      let changed = false;
+      catalog = catalog.map(p => {
+        const clean = sanitizeProductName(p.name);
+        if (clean !== p.name) {
+          changed = true;
+          return { ...p, name: clean };
+        }
+        return p;
+      });
+      if (changed) {
+        localStorage.setItem("temp_master_catalog", JSON.stringify(catalog));
+      }
+      return catalog;
     }
 
     function saveProductCatalog(catalog) {
@@ -955,9 +975,10 @@
         try {
           const parsed = JSON.parse(raw);
           const savedList = parsed.records || [];
-          // Ensure all items use integer whole numbers
+          // Ensure all items use integer whole numbers and sanitized names
           currentRecords = savedList.map(r => ({
             ...r,
+            name: sanitizeProductName(r.name),
             coreTemp: r.coreTemp !== null && r.coreTemp !== undefined ? Math.round(r.coreTemp) : null,
             t1Temp: r.t1Temp !== null && r.t1Temp !== undefined ? Math.round(r.t1Temp) : null
           }));
@@ -1387,13 +1408,19 @@
     }
 
     /* CSV and PDF Exports */
+    function csvEscape(val) {
+      if (val === null || val === undefined) return '""';
+      const clean = String(val).replace(/"/g, '""');
+      return `"${clean}"`;
+    }
+
     function exportToCsv() {
       const date = document.getElementById("logDate").value;
       const checkedBy = document.getElementById("checkedBy").value || "Staff Member";
 
       let csv = "DAILY FOOD TEMPERATURE COMPLIANCE REPORT (WHOLE NUMBERS)\n";
       csv += `Date,${date}\n`;
-      csv += `Checked By,"${checkedBy.replace(/"/g, '""')}"\n\n`;
+      csv += `Checked By,${csvEscape(checkedBy)}\n\n`;
       csv += "Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Result\n";
 
       currentRecords.forEach(r => {
@@ -1403,7 +1430,7 @@
         const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL") : "NOT RECORDED";
         const result = (r.coreTemp >= 200 && r.t1Temp >= 81) ? "PASS" : "CHECK";
 
-        csv += `"${r.id}","${r.name}","${r.category}",${core},"${coreStatus}",${t1},"${t1Status}","${result}"\n`;
+        csv += `${csvEscape(r.id)},${csvEscape(r.name)},${csvEscape(r.category)},${core},${csvEscape(coreStatus)},${t1},${csvEscape(t1Status)},${csvEscape(result)}\n`;
       });
 
       downloadFile(csv, `Temperature_Report_${date}.csv`, "text/csv");
@@ -1433,7 +1460,7 @@
           const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL") : "N/A";
           const result = (r.coreTemp >= 200 && r.t1Temp >= 81) ? "PASS" : "CHECK";
 
-          csv += `"${d}","${by}","${r.name}","${r.category}",${core},"${coreStatus}",${t1},"${t1Status}","${result}"\n`;
+          csv += `${csvEscape(d)},${csvEscape(by)},${csvEscape(r.name)},${csvEscape(r.category)},${core},${csvEscape(coreStatus)},${t1},${csvEscape(t1Status)},${csvEscape(result)}\n`;
         });
       });
 
@@ -1448,7 +1475,8 @@
     }
 
     function downloadFile(content, fileName, mimeType) {
-      const blob = new Blob([content], { type: mimeType + ";charset=utf-8;" });
+      // Add UTF-8 Byte Order Mark (\uFEFF) so Excel, Google Sheets & Numbers parse columns and quotes properly
+      const blob = new Blob(["\uFEFF" + content], { type: mimeType + ";charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = fileName;

@@ -25,17 +25,22 @@ object ReportExporter {
         return dir
     }
 
+    private fun escapeCsv(value: String): String {
+        return "\"${value.replace("\"", "\"\"")}\""
+    }
+
     fun exportDayToCsv(context: Context, log: DailyLog): File {
         val fileName = "TempReport_${log.date.ifEmpty { "log" }}.csv"
         val file = File(getReportsDir(context), fileName)
         val records = log.toProductRecords()
 
-        file.printWriter().use { out ->
+        file.printWriter(Charsets.UTF_8).use { out ->
+            out.print("\uFEFF") // UTF-8 BOM for Microsoft Excel / Google Sheets
             out.println("DAILY FOOD TEMPERATURE COMPLIANCE REPORT")
             out.println("Date,${log.date}")
             out.println("Day,${log.dayOfWeek}")
-            out.println("Checked By,${log.checkedBy.replace(",", " ")}")
-            out.println("General Notes,${(log.notes ?: "").replace(",", " ")}")
+            out.println("Checked By,${escapeCsv(log.checkedBy)}")
+            out.println("General Notes,${escapeCsv(log.notes ?: "")}")
             out.println()
             out.println("Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Compliance,Notes")
 
@@ -59,15 +64,15 @@ object ReportExporter {
                 }
 
                 out.println(
-                    "\"${record.productId}\"," +
-                    "\"${record.productName}\"," +
-                    "\"${record.category}\"," +
+                    "${escapeCsv(record.productId)}," +
+                    "${escapeCsv(record.productName)}," +
+                    "${escapeCsv(record.category)}," +
                     "$coreStr," +
-                    "\"$coreStatus\"," +
+                    "${escapeCsv(coreStatus)}," +
                     "$t1Str," +
-                    "\"$t1Status\"," +
-                    "\"$overall\"," +
-                    "\"${record.notes.replace("\"", "\"\"")}\""
+                    "${escapeCsv(t1Status)}," +
+                    "${escapeCsv(overall)}," +
+                    escapeCsv(record.notes)
                 )
             }
         }
@@ -79,7 +84,8 @@ object ReportExporter {
         val fileName = "TempReport_All_${timeStamp}.csv"
         val file = File(getReportsDir(context), fileName)
 
-        file.printWriter().use { out ->
+        file.printWriter(Charsets.UTF_8).use { out ->
+            out.print("\uFEFF") // UTF-8 BOM for Microsoft Excel / Google Sheets
             out.println("HISTORICAL DAILY FOOD TEMPERATURE LOGS EXPORT")
             out.println("Export Date,$timeStamp")
             out.println("Total Log Days,${logs.size}")
@@ -95,17 +101,17 @@ object ReportExporter {
                     val overall = if (record.isCoreCompliant && record.isT1Compliant) "PASS" else "CHECK"
 
                     out.println(
-                        "\"${log.date}\"," +
-                        "\"${log.dayOfWeek}\"," +
-                        "\"${log.checkedBy}\"," +
-                        "\"${record.productName}\"," +
-                        "\"${record.category}\"," +
+                        "${escapeCsv(log.date)}," +
+                        "${escapeCsv(log.dayOfWeek)}," +
+                        "${escapeCsv(log.checkedBy)}," +
+                        "${escapeCsv(record.productName)}," +
+                        "${escapeCsv(record.category)}," +
                         "$coreStr," +
-                        "\"$coreStatus\"," +
+                        "${escapeCsv(coreStatus)}," +
                         "$t1Str," +
-                        "\"$t1Status\"," +
-                        "\"$overall\"," +
-                        "\"${record.notes.replace("\"", "\"\"")}\""
+                        "${escapeCsv(t1Status)}," +
+                        "${escapeCsv(overall)}," +
+                        escapeCsv(record.notes)
                     )
                 }
             }
