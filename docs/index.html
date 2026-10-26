@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TempTracker - Daily Food Temperature Check Sheet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1B365D;
+      --primary-light: #2A4D80;
+      --primary-dark: #0F223D;
+      --secondary: #2E7D32;
+      --secondary-light: #E8F5E9;
+      --danger: #C62828;
+      --danger-light: #FFEBEE;
+      --warning: #E65100;
+      --warning-light: #FFF3E0;
+      --bg: #F4F6F9;
+      --surface: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 90px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .header-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      opacity: 0.85;
+      font-weight: 400;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    .btn-light {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-light:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-light);
+    }
+
+    .btn-success {
+      background: var(--secondary);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #256628;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #B71C1C;
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-outline:hover {
+      background: #F1F5F9;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 16px auto;
+      padding: 0 16px;
+    }
+
+    /* Date and Inspector bar */
+    .control-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      align-items: center;
+    }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .date-picker-input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: white;
+    }
+
+    .inspector-input {
+      width: 100%;
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    /* Stats Grid */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Actions banner */
+    .autofill-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+
+    .autofill-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    /* Filters & Search */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 240px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: white;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .category-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      width: 100%;
+    }
+
+    .pill {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+    }
+
+    .pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Products Table / Cards */
+    .products-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .product-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: 2.2fr 1.6fr 1.6fr auto;
+      align-items: center;
+      gap: 14px;
+      transition: box-shadow 0.15s ease;
+    }
+
+    .product-row:hover {
+      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    }
+
+    .product-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .product-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .product-cat {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .edit-btn {
+      padding: 2px 7px;
+      font-size: 0.72rem;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: #F8FAFC;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .edit-btn:hover {
+      background: #E2E8F0;
+      color: var(--primary);
+    }
+
+    .temp-input-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .temp-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .temp-input {
+      width: 100%;
+      padding: 7px 32px 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .temp-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.15);
+    }
+
+    .dice-btn {
+      position: absolute;
+      right: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      border-radius: 4px;
+      opacity: 0.7;
+    }
+
+    .dice-btn:hover {
+      opacity: 1;
+      background: #E2E8F0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-pass {
+      background: var(--secondary-light);
+      color: var(--secondary);
+    }
+
+    .badge-fail {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .badge-pending {
+      background: #F1F5F9;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+      .product-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
+
+    /* Floating Save Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 90;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+    }
+
+    .bottom-bar-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 14px;
+      max-width: 520px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close {
+      cursor: pointer;
+      font-size: 20px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+    }
+
+    .code-box {
+      background: #0F172A;
+      color: #38BDF8;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+
+    /* Toast notification */
+    #toast {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: #0F172A;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.25s ease;
+      z-index: 300;
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding-bottom: 0;
+      }
+      header, .autofill-banner, .filter-bar, .bottom-bar, .dice-btn, .btn, .edit-btn, .date-nav button {
+        display: none !important;
+      }
+      .control-card {
+        border: none;
+        padding: 0;
+        margin-bottom: 20px;
+      }
+      .product-row {
+        break-inside: avoid;
+        border-bottom: 1px solid #ccc;
+        border-radius: 0;
+        padding: 6px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="header-content">
+      <div>
+        <div class="brand-title">
+          <span>🌡️</span> TempTracker Cloud
+        </div>
+        <div class="brand-subtitle">Daily Food Temperature Check Sheet & Compliance (Whole Numbers °C)</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-light" onclick="openGitHubModal()">
+          <span>🐙</span> GitHub
+        </button>
+        <button class="btn btn-light" onclick="openHistoryModal()">
+          <span>📅</span> History
+        </button>
+        <button class="btn btn-light" onclick="openExportModal()">
+          <span>📥</span> Export PDF / CSV
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Date Navigation & Inspector Card -->
+    <div class="control-card">
+      <div class="date-nav">
+        <button class="btn btn-outline" onclick="changeDate(-1)">◀ Prev</button>
+        <input type="date" id="logDate" class="date-picker-input" onchange="onDateChanged()">
+        <button class="btn btn-outline" onclick="setToday()">Today</button>
+        <button class="btn btn-outline" onclick="changeDate(1)">Next ▶</button>
+      </div>
+      <div>
+        <input type="text" id="checkedBy" class="inspector-input" placeholder="Checked By (Inspector / Staff Name)" oninput="markUnsaved()">
+      </div>
+    </div>
+
+    <!-- Stats Summary Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value" id="statTotal">39</div>
+        <div class="stat-label">Total Items</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statRecorded">0 / 39</div>
+        <div class="stat-label">Recorded</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--secondary);" id="statCompliant">0</div>
+        <div class="stat-label">Compliant</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statPassRate">0%</div>
+        <div class="stat-label">Pass Rate</div>
+      </div>
+    </div>
+
+    <!-- Autofill Action Bar (Whole Numbers) -->
+    <div class="autofill-banner">
+      <span class="autofill-title">Autofill (Whole Numbers):</span>
+      <button class="btn btn-primary" onclick="autofillAllBoth()">
+        ⚡ Autofill All (Core & T1)
+      </button>
+      <button class="btn btn-outline" onclick="autofillAllCore()">
+        🎲 Core (200°C – 210°C)
+      </button>
+      <button class="btn btn-outline" onclick="autofillAllT1()">
+        🎲 T1 (81°C – 100°C)
+      </button>
+      <button class="btn btn-outline" onclick="clearAllTemps()">
+        🔄 Reset All
+      </button>
+      <button class="btn btn-success" onclick="openAddProductModal()" style="margin-left: auto;">
+        ➕ Add New Product
+      </button>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search product name or category (e.g. pasty, wrap, fry)..." oninput="renderProducts()">
+      </div>
+      <div class="category-pills" id="categoryPills">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Product Rows List -->
+    <div class="products-container" id="productsList">
+      <!-- Injected via JavaScript -->
+    </div>
+
+  </div>
+
+  <!-- Bottom Floating Bar -->
+  <div class="bottom-bar">
+    <div class="bottom-bar-content">
+      <div style="font-size: 0.85rem; color: var(--text-muted);" id="saveStatus">
+        ● Synced to Local Storage
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-outline" onclick="openExportModal()">
+          Export PDF / CSV
+        </button>
+        <button class="btn btn-success" onclick="saveDayLog(true)">
+          💾 Save Daily Log
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast">Log saved successfully</div>
+
+  <!-- Edit Product Modal -->
+  <div class="modal-overlay" id="editProductModal">
+    <div class="modal">
+      <div class="modal-title">
+        <span>✏️ Edit Product</span>
+        <button class="modal-close" onclick="closeEditProductModal()">✕</button>
+      </div>
+      <input type="hidden" id="editProductId">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Product Name</label>
+          <input type="text" id="editProductName" class="inspector-input" placeholder="e.g. steak bake">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Category</label>
+          <input type="text" id="editProductCategory" class="inspector-input" placeholder="e.g. Bakes & Turnovers, Fry Food">
+        </div>
+      </div>
+      <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-danger" onclick="deleteCurrentProduct()">
+          🗑️ Delete Product
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline" onclick="closeEditProductModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveEditedProduct()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div class="modal-overlay" id="addProductModal">
+    <div class="modal">
+      <div class="modal-title">
+        <span>➕ Add New Product</span>
+        <button class="modal-close" onclick="closeAddProductModal()">✕</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Product Name</label>
+          <input type="text" id="newProductName" class="inspector-input" placeholder="e.g. Potato Wedges, Onion Rings, Ribs">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Category</label>
+          <input type="text" id="newProductCategory" class="inspector-input" value="Fry Food" placeholder="e.g. Fry Food, Breakfast, Bakes">
+        </div>
+      </div>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-outline" onclick="closeAddProductModal()">Cancel</button>
+        <button class="btn btn-success" onclick="submitNewProduct()">Add to Sheet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal">
+      <div class="modal-title">
+        <span>Export Temperature Report</span>
+        <button class="modal-close" onclick="closeExportModal()">✕</button>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+        Generate formal food safety hygiene audit sheets (whole numbers °C):
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn btn-outline" style="justify-content: flex-start; padding: 12px;" onclick="exportToPdf()">
+          <span style="font-size: 22px;">📄</span>
+          <div style="text-align: left;">
+            <div style="font-weight: 700;">Print / Save as PDF</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Formatted official audit check sheet with signature area</div>
+          </div>
+        </button>
+
+        <button class="btn btn-outline" style="justify-content: flex-start; padding: 12px;" onclick="exportToCsv()">
+          <span style="font-size: 22px;">📊</span>
+          <div style="text-align: left;">
+            <div style="font-weight: 700;">Export Today's Sheet (CSV)</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Tabular dataset compatible with Excel and Google Sheets</div>
+          </div>
+        </button>
+
+        <button class="btn btn-outline" style="justify-content: flex-start; padding: 12px;" onclick="exportAllHistoryCsv()">
+          <span style="font-size: 22px;">🗂️</span>
+          <div style="text-align: left;">
+            <div style="font-weight: 700;">Export Complete History (CSV)</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">All historical days logged in local database</div>
+          </div>
+        </button>
+      </div>
+
+      <div style="margin-top: 20px; text-align: right;">
+        <button class="btn btn-outline" onclick="closeExportModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal">
+      <div class="modal-title">
+        <span>Temperature Log History</span>
+        <button class="modal-close" onclick="closeHistoryModal()">✕</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Select a previous day to review or update temperature readings:
+      </p>
+      <div id="historyList" style="display: flex; flex-direction: column; gap: 8px; max-height: 350px; overflow-y: auto;">
+        <!-- Injected via JS -->
+      </div>
+      <div style="margin-top: 16px; text-align: right;">
+        <button class="btn btn-outline" onclick="closeHistoryModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GitHub Setup Guide Modal -->
+  <div class="modal-overlay" id="githubModal">
+    <div class="modal">
+      <div class="modal-title">
+        <span>🐙 Host Free on GitHub Pages</span>
+        <button class="modal-close" onclick="closeGitHubModal()">✕</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        You can host this entire web app on <strong>GitHub Pages</strong> completely free in 3 quick steps:
+      </p>
+
+      <ol style="font-size: 0.85rem; line-height: 1.6; padding-left: 20px; color: var(--text);">
+        <li>Push this repository to your GitHub account (or upload files to GitHub).</li>
+        <li>On GitHub, go to <strong>Settings</strong> ➔ <strong>Pages</strong> (in the left sidebar).</li>
+        <li>Under <strong>Branch</strong>, choose <code>main</code> (or <code>master</code>) and either <code>/docs</code> or <code>/ (root)</code> — both are supported with <code>.nojekyll</code>!</li>
+        <li>Click <strong>Save</strong>. In 1 minute your app is live!</li>
+      </ol>
+
+      <div class="code-box">
+        # Push via Git CLI:<br>
+        git add .<br>
+        git commit -m "Configure GitHub Pages"<br>
+        git push -u origin main
+      </div>
+
+      <p style="font-size: 0.8rem; color: var(--secondary); font-weight: 600; margin-top: 10px;">
+        ✓ Your live web app URL: https://DeltaGaming07.github.io/TempTracker/
+      </p>
+
+      <div style="margin-top: 16px; text-align: right;">
+        <button class="btn btn-primary" onclick="closeGitHubModal()">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initial products list from photo
+    const INITIAL_DEFAULT_PRODUCTS = [
+      { id: "p01", name: "bacon cheese turnover", category: "Bakes & Turnovers" },
+      { id: "p02", name: "cheese onion lattice bake", category: "Bakes & Turnovers" },
+      { id: "p03", name: "waldens 8\" sausage roll", category: "Sausage Rolls" },
+      { id: "p04", name: "big 8\" sausage roll", category: "Sausage Rolls" },
+      { id: "p05", name: "chicken tikka bake", category: "Bakes & Turnovers" },
+      { id: "p06", name: "steak bake", category: "Bakes & Turnovers" },
+      { id: "p07", name: "chicken mushroom bake", category: "Bakes & Turnovers" },
+      { id: "p08", name: "cheese and ham bake", category: "Bakes & Turnovers" },
+      { id: "p09", name: "chicken bacon bake", category: "Bakes & Turnovers" },
+      { id: "p10", name: "pork chorizo roll", category: "Sausage Rolls" },
+      { id: "p11", name: "chilli beef roll", category: "Sausage Rolls" },
+      { id: "p12", name: "traditional pasty", category: "Pasties" },
+      { id: "p13", name: "classic potato dog", category: "Hot Dogs & Savory" },
+      { id: "p14", name: "fiery cheese potato", category: "Hot Dogs & Savory" },
+      { id: "p15", name: "cheeseburger puff", category: "Puffs & Burgers" },
+      { id: "p16", name: "tomato mozzarella bake", category: "Bakes & Turnovers" },
+      { id: "p17", name: "steak and cheese bar", category: "Bakes & Bars" },
+      { id: "p18", name: "sausage egg muffin", category: "Breakfast" },
+      { id: "p19", name: "sausage rosti muffin", category: "Breakfast" },
+      { id: "p20", name: "bacon baguette", category: "Breakfast & Baguettes" },
+      { id: "p21", name: "cheeseburger", category: "Burgers" },
+      { id: "p22", name: "ham and cheese toastie", category: "Toasties & Paninis" },
+      { id: "p23", name: "bbq toastie", category: "Toasties & Paninis" },
+      { id: "p24", name: "chicken burger", category: "Burgers" },
+      { id: "p25", name: "ham and cheese panini", category: "Toasties & Paninis" },
+      { id: "p26", name: "pesto mozzarella ciabatta", category: "Ciabattas & Wraps" },
+      { id: "p27", name: "sausage ciabatta", category: "Ciabattas & Wraps" },
+      { id: "p28", name: "all day breakfast wrap", category: "Ciabattas & Wraps" },
+      { id: "p29", name: "meatball melt wrap", category: "Ciabattas & Wraps" },
+      { id: "p30", name: "chicken fajita wrap", category: "Ciabattas & Wraps" },
+      { id: "p31", name: "spicy chicken burrito", category: "Burritos & Wraps" },
+      { id: "p32", name: "rollover classic hot dog", category: "Rollover Hot Dogs" },
+      { id: "p33", name: "rollover breakfast hot dog", category: "Rollover Hot Dogs" },
+      { id: "p34", name: "rollover chili cheese hot dog", category: "Rollover Hot Dogs" },
+      { id: "p35", name: "hudson's ribuette", category: "Savory & Ribs" },
+      { id: "p36", name: "FRY FOOD: hash browns", category: "Fry Food" },
+      { id: "p37", name: "FRY FOOD: french fries", category: "Fry Food" },
+      { id: "p38", name: "FRY FOOD: chicken tenders", category: "Fry Food" },
+      { id: "p39", name: "FRY FOOD: mozzarella sticks", category: "Fry Food" }
+    ];
+
+    function getProductCatalog() {
+      const saved = localStorage.getItem("temp_master_catalog");
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+      return INITIAL_DEFAULT_PRODUCTS;
+    }
+
+    function saveProductCatalog(catalog) {
+      localStorage.setItem("temp_master_catalog", JSON.stringify(catalog));
+    }
+
+    let currentRecords = [];
+    let activeCategory = "All";
+
+    function getTodayString() {
+      const today = new Date();
+      return today.toISOString().split("T")[0];
+    }
+
+    function init() {
+      const savedDate = localStorage.getItem("temp_last_date") || getTodayString();
+      document.getElementById("logDate").value = savedDate;
+      document.getElementById("checkedBy").value = localStorage.getItem("temp_last_inspector") || "Staff Member";
+      loadDateLog(savedDate);
+      renderCategoryPills();
+    }
+
+    function setToday() {
+      const today = getTodayString();
+      document.getElementById("logDate").value = today;
+      loadDateLog(today);
+    }
+
+    function changeDate(deltaDays) {
+      const curr = new Date(document.getElementById("logDate").value || getTodayString());
+      curr.setDate(curr.getDate() + deltaDays);
+      const newDate = curr.toISOString().split("T")[0];
+      document.getElementById("logDate").value = newDate;
+      loadDateLog(newDate);
+    }
+
+    function onDateChanged() {
+      const date = document.getElementById("logDate").value;
+      if (date) {
+        loadDateLog(date);
+      }
+    }
+
+    function loadDateLog(dateStr) {
+      localStorage.setItem("temp_last_date", dateStr);
+      const raw = localStorage.getItem("temp_log_" + dateStr);
+      const catalog = getProductCatalog();
+
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          const savedList = parsed.records || [];
+          // Ensure all items use integer whole numbers
+          currentRecords = savedList.map(r => ({
+            ...r,
+            coreTemp: r.coreTemp !== null && r.coreTemp !== undefined ? Math.round(r.coreTemp) : null,
+            t1Temp: r.t1Temp !== null && r.t1Temp !== undefined ? Math.round(r.t1Temp) : null
+          }));
+          if (parsed.checkedBy) {
+            document.getElementById("checkedBy").value = parsed.checkedBy;
+          }
+        } catch (e) {
+          currentRecords = catalog.map(p => ({ ...p, coreTemp: null, t1Temp: null }));
+        }
+      } else {
+        currentRecords = catalog.map(p => ({ ...p, coreTemp: null, t1Temp: null }));
+      }
+      renderCategoryPills();
+      renderProducts();
+      updateStats();
+      updateSaveStatus(true);
+    }
+
+    function saveDayLog(showFeedback = false) {
+      const date = document.getElementById("logDate").value;
+      const checkedBy = document.getElementById("checkedBy").value || "Staff Member";
+      localStorage.setItem("temp_last_inspector", checkedBy);
+
+      const payload = {
+        date,
+        checkedBy,
+        updatedAt: new Date().toISOString(),
+        records: currentRecords
+      };
+
+      localStorage.setItem("temp_log_" + date, JSON.stringify(payload));
+
+      let historyIndex = JSON.parse(localStorage.getItem("temp_history_index") || "[]");
+      if (!historyIndex.includes(date)) {
+        historyIndex.push(date);
+        historyIndex.sort().reverse();
+        localStorage.setItem("temp_history_index", JSON.stringify(historyIndex));
+      }
+
+      updateSaveStatus(true);
+      if (showFeedback) {
+        showToast("✓ Log saved for " + date);
+      }
+    }
+
+    function markUnsaved() {
+      updateSaveStatus(false);
+    }
+
+    function updateSaveStatus(saved) {
+      const statusEl = document.getElementById("saveStatus");
+      if (saved) {
+        statusEl.innerHTML = "<span style='color: var(--secondary); font-weight: 600;'>● Saved</span>";
+      } else {
+        statusEl.innerHTML = "<span style='color: var(--warning); font-weight: 600;'>● Unsaved Changes</span>";
+      }
+    }
+
+    /* WHOLE NUMBER AUTOFILL ACTIONS */
+    function autofillAllCore() {
+      currentRecords.forEach(item => {
+        // Integer between 200 and 210 inclusive
+        item.coreTemp = Math.floor(200 + Math.random() * 11);
+      });
+      renderProducts();
+      updateStats();
+      saveDayLog(false);
+      showToast("🎲 Core temperatures randomized (200°C – 210°C whole numbers)");
+    }
+
+    function autofillAllT1() {
+      currentRecords.forEach(item => {
+        // Integer between 81 and 100 inclusive
+        item.t1Temp = Math.floor(81 + Math.random() * 20);
+      });
+      renderProducts();
+      updateStats();
+      saveDayLog(false);
+      showToast("🎲 T1 temperatures randomized (81°C – 100°C whole numbers)");
+    }
+
+    function autofillAllBoth() {
+      currentRecords.forEach(item => {
+        item.coreTemp = Math.floor(200 + Math.random() * 11);
+        item.t1Temp = Math.floor(81 + Math.random() * 20);
+      });
+      renderProducts();
+      updateStats();
+      saveDayLog(false);
+      showToast("⚡ Autofilled both Core & T1 whole numbers!");
+    }
+
+    function clearAllTemps() {
+      if (confirm("Reset all temperature readings for today?")) {
+        currentRecords.forEach(item => {
+          item.coreTemp = null;
+          item.t1Temp = null;
+        });
+        renderProducts();
+        updateStats();
+        saveDayLog(false);
+        showToast("Cleared all temperature inputs");
+      }
+    }
+
+    function randomizeSingleCore(id) {
+      const item = currentRecords.find(p => p.id === id);
+      if (item) {
+        item.coreTemp = Math.floor(200 + Math.random() * 11);
+        const input = document.getElementById("core_" + id);
+        if (input) input.value = item.coreTemp;
+        updateRowStatus(id);
+        updateStats();
+        markUnsaved();
+      }
+    }
+
+    function randomizeSingleT1(id) {
+      const item = currentRecords.find(p => p.id === id);
+      if (item) {
+        item.t1Temp = Math.floor(81 + Math.random() * 20);
+        const input = document.getElementById("t1_" + id);
+        if (input) input.value = item.t1Temp;
+        updateRowStatus(id);
+        updateStats();
+        markUnsaved();
+      }
+    }
+
+    function onCoreInput(id, val) {
+      const item = currentRecords.find(p => p.id === id);
+      if (item) {
+        item.coreTemp = val.trim() === "" ? null : parseInt(val, 10);
+        updateRowStatus(id);
+        updateStats();
+        markUnsaved();
+      }
+    }
+
+    function onT1Input(id, val) {
+      const item = currentRecords.find(p => p.id === id);
+      if (item) {
+        item.t1Temp = val.trim() === "" ? null : parseInt(val, 10);
+        updateRowStatus(id);
+        updateStats();
+        markUnsaved();
+      }
+    }
+
+    function updateRowStatus(id) {
+      const item = currentRecords.find(p => p.id === id);
+      if (!item) return;
+
+      const badge = document.getElementById("badge_" + id);
+      if (!badge) return;
+
+      const corePass = item.coreTemp !== null && item.coreTemp >= 200;
+      const t1Pass = item.t1Temp !== null && item.t1Temp >= 81;
+      const hasAny = item.coreTemp !== null || item.t1Temp !== null;
+
+      if (!hasAny) {
+        badge.className = "badge badge-pending";
+        badge.textContent = "Pending";
+      } else if (corePass && t1Pass) {
+        badge.className = "badge badge-pass";
+        badge.textContent = "PASS";
+      } else {
+        badge.className = "badge badge-fail";
+        badge.textContent = "CHECK";
+      }
+    }
+
+    function updateStats() {
+      const total = currentRecords.length;
+      const recorded = currentRecords.filter(r => r.coreTemp !== null || r.t1Temp !== null).length;
+      const compliant = currentRecords.filter(r => r.coreTemp !== null && r.coreTemp >= 200 && r.t1Temp !== null && r.t1Temp >= 81).length;
+
+      document.getElementById("statTotal").textContent = total;
+      document.getElementById("statRecorded").textContent = `${recorded} / ${total}`;
+      document.getElementById("statCompliant").textContent = compliant;
+      document.getElementById("statPassRate").textContent = total > 0 ? Math.round((compliant / total) * 100) + "%" : "0%";
+    }
+
+    // Render Products List
+    function renderProducts() {
+      const search = (document.getElementById("searchInput").value || "").toLowerCase();
+      const container = document.getElementById("productsList");
+
+      const filtered = currentRecords.filter(item => {
+        const matchSearch = item.name.toLowerCase().includes(search) || item.category.toLowerCase().includes(search);
+        const matchCat = activeCategory === "All" || item.category === activeCategory;
+        return matchSearch && matchCat;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted);">No products match your search.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const corePass = item.coreTemp !== null && item.coreTemp >= 200;
+        const t1Pass = item.t1Temp !== null && item.t1Temp >= 81;
+        const hasAny = item.coreTemp !== null || item.t1Temp !== null;
+
+        let badgeClass = "badge-pending";
+        let badgeText = "Pending";
+        if (hasAny) {
+          if (corePass && t1Pass) {
+            badgeClass = "badge-pass";
+            badgeText = "PASS";
+          } else {
+            badgeClass = "badge-fail";
+            badgeText = "CHECK";
+          }
+        }
+
+        const coreVal = item.coreTemp !== null ? Math.round(item.coreTemp) : "";
+        const t1Val = item.t1Temp !== null ? Math.round(item.t1Temp) : "";
+
+        return `
+          <div class="product-row" id="row_${item.id}">
+            <div class="product-info">
+              <div class="product-name-row">
+                <span class="product-name">${item.name}</span>
+                <button class="edit-btn" onclick="openEditProductModal('${item.id}')" title="Edit product name and category">✏️ Edit</button>
+              </div>
+              <span class="product-cat">${item.category}</span>
+            </div>
+
+            <div class="temp-input-box">
+              <div class="temp-label">
+                <span>Core (≥200°C)</span>
+                <span style="color: ${corePass ? 'var(--secondary)' : (item.coreTemp ? 'var(--danger)' : 'var(--text-muted)')}; font-weight: 700;">
+                  ${item.coreTemp !== null ? (corePass ? '✓ OK' : '✗ Low') : ''}
+                </span>
+              </div>
+              <div class="input-group">
+                <input type="number" step="1" id="core_${item.id}" class="temp-input" value="${coreVal}" placeholder="205" oninput="onCoreInput('${item.id}', this.value)">
+                <button class="dice-btn" title="Randomize Core (200-210°C whole number)" onclick="randomizeSingleCore('${item.id}')">🎲</button>
+              </div>
+            </div>
+
+            <div class="temp-input-box">
+              <div class="temp-label">
+                <span>T1 (≥81°C)</span>
+                <span style="color: ${t1Pass ? 'var(--secondary)' : (item.t1Temp ? 'var(--danger)' : 'var(--text-muted)')}; font-weight: 700;">
+                  ${item.t1Temp !== null ? (t1Pass ? '✓ OK' : '✗ Low') : ''}
+                </span>
+              </div>
+              <div class="input-group">
+                <input type="number" step="1" id="t1_${item.id}" class="temp-input" value="${t1Val}" placeholder="88" oninput="onT1Input('${item.id}', this.value)">
+                <button class="dice-btn" title="Randomize T1 (81-100°C whole number)" onclick="randomizeSingleT1('${item.id}')">🎲</button>
+              </div>
+            </div>
+
+            <div>
+              <span id="badge_${item.id}" class="badge ${badgeClass}">${badgeText}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderCategoryPills() {
+      const categoriesSet = new Set(["All"]);
+      currentRecords.forEach(r => {
+        if (r.category) categoriesSet.add(r.category);
+      });
+      const categories = Array.from(categoriesSet);
+      const container = document.getElementById("categoryPills");
+      container.innerHTML = categories.map(cat => `
+        <button class="pill ${cat === activeCategory ? 'active' : ''}" onclick="setCategory('${cat}')">${cat}</button>
+      `).join("");
+    }
+
+    function setCategory(cat) {
+      activeCategory = cat;
+      renderCategoryPills();
+      renderProducts();
+    }
+
+    /* EDIT PRODUCT MODAL */
+    function openEditProductModal(id) {
+      const item = currentRecords.find(p => p.id === id);
+      if (!item) return;
+
+      document.getElementById("editProductId").value = item.id;
+      document.getElementById("editProductName").value = item.name;
+      document.getElementById("editProductCategory").value = item.category;
+
+      document.getElementById("editProductModal").classList.add("open");
+    }
+
+    function closeEditProductModal() {
+      document.getElementById("editProductModal").classList.remove("open");
+    }
+
+    function saveEditedProduct() {
+      const id = document.getElementById("editProductId").value;
+      const newName = document.getElementById("editProductName").value.trim();
+      const newCat = document.getElementById("editProductCategory").value.trim() || "Standard";
+
+      if (!newName) {
+        alert("Product name cannot be empty");
+        return;
+      }
+
+      // Update current day
+      const item = currentRecords.find(p => p.id === id);
+      if (item) {
+        item.name = newName;
+        item.category = newCat;
+      }
+
+      // Update master catalog
+      const catalog = getProductCatalog();
+      const catItem = catalog.find(p => p.id === id);
+      if (catItem) {
+        catItem.name = newName;
+        catItem.category = newCat;
+      } else {
+        catalog.push({ id, name: newName, category: newCat });
+      }
+      saveProductCatalog(catalog);
+
+      closeEditProductModal();
+      renderCategoryPills();
+      renderProducts();
+      saveDayLog(false);
+      showToast(`Updated "${newName}"`);
+    }
+
+    function deleteCurrentProduct() {
+      const id = document.getElementById("editProductId").value;
+      const item = currentRecords.find(p => p.id === id);
+      const name = item ? item.name : "Product";
+
+      if (confirm(`Are you sure you want to delete "${name}" from this sheet and catalog?`)) {
+        currentRecords = currentRecords.filter(p => p.id !== id);
+
+        const catalog = getProductCatalog().filter(p => p.id !== id);
+        saveProductCatalog(catalog);
+
+        closeEditProductModal();
+        renderCategoryPills();
+        renderProducts();
+        updateStats();
+        saveDayLog(false);
+        showToast(`Deleted "${name}"`);
+      }
+    }
+
+    /* ADD PRODUCT MODAL */
+    function openAddProductModal() {
+      document.getElementById("newProductName").value = "";
+      document.getElementById("newProductCategory").value = "Fry Food";
+      document.getElementById("addProductModal").classList.add("open");
+    }
+
+    function closeAddProductModal() {
+      document.getElementById("addProductModal").classList.remove("open");
+    }
+
+    function submitNewProduct() {
+      const name = document.getElementById("newProductName").value.trim();
+      const cat = document.getElementById("newProductCategory").value.trim() || "Fry Food";
+      if (!name) return;
+
+      const newId = "prod_" + Date.now();
+      const newProd = {
+        id: newId,
+        name: name,
+        category: cat,
+        coreTemp: null,
+        t1Temp: null
+      };
+
+      currentRecords.push(newProd);
+
+      // Save to master catalog
+      const catalog = getProductCatalog();
+      catalog.push({ id: newId, name: name, category: cat });
+      saveProductCatalog(catalog);
+
+      closeAddProductModal();
+      renderCategoryPills();
+      renderProducts();
+      updateStats();
+      saveDayLog(false);
+      showToast(`Added "${name}"`);
+    }
+
+    // Modal open/close helpers
+    function openExportModal() { document.getElementById("exportModal").classList.add("open"); }
+    function closeExportModal() { document.getElementById("exportModal").classList.remove("open"); }
+    function openGitHubModal() { document.getElementById("githubModal").classList.add("open"); }
+    function closeGitHubModal() { document.getElementById("githubModal").classList.remove("open"); }
+
+    function openHistoryModal() {
+      const container = document.getElementById("historyList");
+      const historyIndex = JSON.parse(localStorage.getItem("temp_history_index") || "[]");
+      if (historyIndex.length === 0) {
+        container.innerHTML = `<p style="padding: 16px; color: var(--text-muted); text-align: center;">No history logs recorded yet.</p>`;
+      } else {
+        container.innerHTML = historyIndex.map(date => {
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;">
+              <div>
+                <strong>${date}</strong>
+              </div>
+              <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;" onclick="loadHistoricDate('${date}')">
+                Open Day
+              </button>
+            </div>
+          `;
+        }).join("");
+      }
+      document.getElementById("historyModal").classList.add("open");
+    }
+
+    function closeHistoryModal() { document.getElementById("historyModal").classList.remove("open"); }
+
+    function loadHistoricDate(date) {
+      document.getElementById("logDate").value = date;
+      loadDateLog(date);
+      closeHistoryModal();
+    }
+
+    /* CSV and PDF Exports */
+    function exportToCsv() {
+      const date = document.getElementById("logDate").value;
+      const checkedBy = document.getElementById("checkedBy").value || "Staff Member";
+
+      let csv = "DAILY FOOD TEMPERATURE COMPLIANCE REPORT (WHOLE NUMBERS)\n";
+      csv += `Date,${date}\n`;
+      csv += `Checked By,"${checkedBy.replace(/"/g, '""')}"\n\n`;
+      csv += "Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Result\n";
+
+      currentRecords.forEach(r => {
+        const core = r.coreTemp !== null ? Math.round(r.coreTemp) : "N/A";
+        const coreStatus = r.coreTemp !== null ? (r.coreTemp >= 200 ? "PASS" : "FAIL") : "NOT RECORDED";
+        const t1 = r.t1Temp !== null ? Math.round(r.t1Temp) : "N/A";
+        const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL") : "NOT RECORDED";
+        const result = (r.coreTemp >= 200 && r.t1Temp >= 81) ? "PASS" : "CHECK";
+
+        csv += `"${r.id}","${r.name}","${r.category}",${core},"${coreStatus}",${t1},"${t1Status}","${result}"\n`;
+      });
+
+      downloadFile(csv, `Temperature_Report_${date}.csv`, "text/csv");
+      closeExportModal();
+      showToast("Downloaded CSV report (whole numbers)");
+    }
+
+    function exportAllHistoryCsv() {
+      const historyIndex = JSON.parse(localStorage.getItem("temp_history_index") || "[]");
+      if (historyIndex.length === 0) {
+        exportToCsv();
+        return;
+      }
+
+      let csv = "HISTORICAL FOOD TEMPERATURE LOGS (WHOLE NUMBERS)\n\n";
+      csv += "Date,Checked By,Product Name,Category,Core Temp (°C),Core Status,T1 Temp (°C),T1 Status,Result\n";
+
+      historyIndex.forEach(d => {
+        const data = JSON.parse(localStorage.getItem("temp_log_" + d) || "{}");
+        const records = data.records || [];
+        const by = data.checkedBy || "";
+
+        records.forEach(r => {
+          const core = r.coreTemp !== null ? Math.round(r.coreTemp) : "N/A";
+          const coreStatus = r.coreTemp !== null ? (r.coreTemp >= 200 ? "PASS" : "FAIL") : "N/A";
+          const t1 = r.t1Temp !== null ? Math.round(r.t1Temp) : "N/A";
+          const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL") : "N/A";
+          const result = (r.coreTemp >= 200 && r.t1Temp >= 81) ? "PASS" : "CHECK";
+
+          csv += `"${d}","${by}","${r.name}","${r.category}",${core},"${coreStatus}",${t1},"${t1Status}","${result}"\n`;
+        });
+      });
+
+      downloadFile(csv, `All_Temperature_Logs_${getTodayString()}.csv`, "text/csv");
+      closeExportModal();
+      showToast("Downloaded Complete History CSV");
+    }
+
+    function exportToPdf() {
+      closeExportModal();
+      window.print();
+    }
+
+    function downloadFile(content, fileName, mimeType) {
+      const blob = new Blob([content], { type: mimeType + ";charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      link.click();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2500);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
