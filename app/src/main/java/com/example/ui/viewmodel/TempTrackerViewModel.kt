@@ -160,12 +160,12 @@ class TempTrackerViewModel(
         _uiState.value = _uiState.value.copy(
             records = updated,
             isSavedToCloud = false,
-            userMessage = "Randomized Core temps (200°C - 210°C whole numbers) for all ${updated.size} items"
+            userMessage = "Randomized Core temps (200°C - 210°C) for all ${updated.size} items"
         )
     }
 
     /**
-     * Randomize all products T1 temperature between 81 and 100 °C as whole numbers
+     * Randomize all products T1 temperature between 81 and 100 °C
      */
     fun randomizeAllT1Temps() {
         val updated = _uiState.value.records.map { record ->
@@ -175,12 +175,12 @@ class TempTrackerViewModel(
         _uiState.value = _uiState.value.copy(
             records = updated,
             isSavedToCloud = false,
-            userMessage = "Randomized T1 temps (81°C - 100°C whole numbers) for all ${updated.size} items"
+            userMessage = "Randomized T1 temps (81°C - 100°C) for all ${updated.size} items"
         )
     }
 
     /**
-     * Randomize both Core and T1 temperatures for all items as whole numbers
+     * Randomize both Core and T1 temperatures for all items
      */
     fun randomizeBothAll() {
         val updated = _uiState.value.records.map { record ->
@@ -191,7 +191,7 @@ class TempTrackerViewModel(
         _uiState.value = _uiState.value.copy(
             records = updated,
             isSavedToCloud = false,
-            userMessage = "Autofilled both Core (200-210°C) & T1 (81-100°C) whole numbers for all items"
+            userMessage = "Autofilled both Core (200-210°C) & T1 (81-100°C) for all items"
         )
     }
 

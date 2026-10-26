@@ -593,7 +593,7 @@
         <div class="brand-title">
           <span>🌡️</span> TempTracker Cloud
         </div>
-        <div class="brand-subtitle">Daily Food Temperature Check Sheet & Compliance (Whole Numbers °C)</div>
+        <div class="brand-subtitle">Daily Food Temperature Check Sheet & Compliance</div>
       </div>
       <div class="header-actions">
         <button class="btn btn-light" onclick="openGitHubModal()">
@@ -644,9 +644,9 @@
       </div>
     </div>
 
-    <!-- Autofill Action Bar (Whole Numbers) -->
+    <!-- Autofill Action Bar -->
     <div class="autofill-banner">
-      <span class="autofill-title">Autofill (Whole Numbers):</span>
+      <span class="autofill-title">Autofill:</span>
       <button class="btn btn-primary" onclick="autofillAllBoth()">
         ⚡ Autofill All (Core & T1)
       </button>
@@ -764,7 +764,7 @@
         <button class="modal-close" onclick="closeExportModal()">✕</button>
       </div>
       <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
-        Generate formal food safety hygiene audit sheets (whole numbers °C):
+        Generate formal food safety hygiene audit sheets:
       </p>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -1046,7 +1046,7 @@
       renderProducts();
       updateStats();
       saveDayLog(false);
-      showToast("🎲 Core temperatures randomized (200°C – 210°C whole numbers)");
+      showToast("🎲 Core temperatures randomized (200°C – 210°C)");
     }
 
     function autofillAllT1() {
@@ -1057,7 +1057,7 @@
       renderProducts();
       updateStats();
       saveDayLog(false);
-      showToast("🎲 T1 temperatures randomized (81°C – 100°C whole numbers)");
+      showToast("🎲 T1 temperatures randomized (81°C – 100°C)");
     }
 
     function autofillAllBoth() {
@@ -1068,7 +1068,7 @@
       renderProducts();
       updateStats();
       saveDayLog(false);
-      showToast("⚡ Autofilled both Core & T1 whole numbers!");
+      showToast("⚡ Autofilled both Core & T1 temperatures!");
     }
 
     function clearAllTemps() {
@@ -1417,25 +1417,74 @@
     function exportToCsv() {
       const date = document.getElementById("logDate").value;
       const checkedBy = document.getElementById("checkedBy").value || "Staff Member";
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dateObj = new Date(date + "T00:00:00");
+      const dayOfWeek = isNaN(dateObj) ? "" : dayNames[dateObj.getDay()];
 
-      let csv = "DAILY FOOD TEMPERATURE COMPLIANCE REPORT (WHOLE NUMBERS)\n";
-      csv += `Date,${date}\n`;
-      csv += `Checked By,${csvEscape(checkedBy)}\n\n`;
-      csv += "Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Result\n";
+      const total = currentRecords.length;
+      const recorded = currentRecords.filter(r => r.coreTemp !== null || r.t1Temp !== null).length;
+      const compliant = currentRecords.filter(r => r.coreTemp !== null && r.coreTemp >= 200 && r.t1Temp !== null && r.t1Temp >= 81).length;
+      const nonCompliant = recorded - compliant;
+      const passRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
+      const auditStatus = (compliant === total && total > 0) ? "PASSED" : (recorded === 0 ? "PENDING" : "ATTENTION REQUIRED");
 
+      let csv = "";
+      csv += "================================================================================\n";
+      csv += "** DAILY FOOD TEMPERATURE COMPLIANCE REPORT **\n";
+      csv += "================================================================================\n\n";
+
+      csv += "** SECTION 1: AUDIT INFORMATION **\n";
+      csv += `"Audit Date:",${csvEscape(date)}\n`;
+      csv += `"Day of Week:",${csvEscape(dayOfWeek)}\n`;
+      csv += `"Checked By:",${csvEscape(checkedBy)}\n`;
+      csv += `"Compliance Standard:",${csvEscape("Core Temp >= 200°C | T1 Temp >= 81°C")}\n\n`;
+
+      csv += "================================================================================\n";
+      csv += "** SECTION 2: AUDIT SUMMARY & COMPLIANCE METRICS **\n";
+      csv += "================================================================================\n";
+      csv += `"Total Products Audited:",${total}\n`;
+      csv += `"Readings Recorded:",${csvEscape(`${recorded} / ${total}`)}\n`;
+      csv += `"Fully Compliant Items:",${compliant}\n`;
+      csv += `"Non-Compliant Items:",${nonCompliant}\n`;
+      csv += `"Overall Pass Rate:",${csvEscape(`${passRate}%`)}\n`;
+      csv += `"Audit Outcome:",${csvEscape(auditStatus)}\n\n`;
+
+      csv += "================================================================================\n";
+      csv += "** SECTION 3: DETAILED PRODUCT TEMPERATURE LOG **\n";
+      csv += "================================================================================\n";
+      csv += "Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Result,Corrective Action / Notes\n";
+
+      // Group records by category for clarity
+      const categories = [];
       currentRecords.forEach(r => {
-        const core = r.coreTemp !== null ? Math.round(r.coreTemp) : "N/A";
-        const coreStatus = r.coreTemp !== null ? (r.coreTemp >= 200 ? "PASS" : "FAIL") : "NOT RECORDED";
-        const t1 = r.t1Temp !== null ? Math.round(r.t1Temp) : "N/A";
-        const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL") : "NOT RECORDED";
-        const result = (r.coreTemp >= 200 && r.t1Temp >= 81) ? "PASS" : "CHECK";
-
-        csv += `${csvEscape(r.id)},${csvEscape(r.name)},${csvEscape(r.category)},${core},${csvEscape(coreStatus)},${t1},${csvEscape(t1Status)},${csvEscape(result)}\n`;
+        if (!categories.includes(r.category)) categories.push(r.category);
       });
+
+      categories.forEach(cat => {
+        csv += `\n** CATEGORY: ${cat.toUpperCase()} **,,,,,,,,\n`;
+        const items = currentRecords.filter(r => r.category === cat);
+        items.forEach(r => {
+          const core = r.coreTemp !== null ? Math.round(r.coreTemp) : "N/A";
+          const coreStatus = r.coreTemp !== null ? (r.coreTemp >= 200 ? "PASS" : "FAIL (<200°C)") : "NOT RECORDED";
+          const t1 = r.t1Temp !== null ? Math.round(r.t1Temp) : "N/A";
+          const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL (<81°C)") : "NOT RECORDED";
+          const result = (r.coreTemp !== null && r.coreTemp >= 200 && r.t1Temp !== null && r.t1Temp >= 81) ? "PASS" : (r.coreTemp === null && r.t1Temp === null ? "PENDING" : "CHECK");
+
+          csv += `${csvEscape(r.id)},${csvEscape(r.name)},${csvEscape(r.category)},${core},${csvEscape(coreStatus)},${t1},${csvEscape(t1Status)},${csvEscape(result)},""\n`;
+        });
+      });
+
+      csv += "\n================================================================================\n";
+      csv += "** SECTION 4: SUPERVISOR SIGN-OFF & VERIFICATION **\n";
+      csv += "================================================================================\n";
+      csv += `"Staff / Inspector Signature:","________________________________________","Date:",${csvEscape(date)}\n`;
+      csv += `"Manager / Supervisor Signature:","________________________________________","Date:",${csvEscape(date)}\n`;
+      csv += `"Verification Declaration:",${csvEscape("I certify that all food temperatures recorded above were verified in accordance with statutory food safety and HACCP standards.")}\n`;
+      csv += "================================================================================\n";
 
       downloadFile(csv, `Temperature_Report_${date}.csv`, "text/csv");
       closeExportModal();
-      showToast("Downloaded CSV report (whole numbers)");
+      showToast("Downloaded CSV report");
     }
 
     function exportAllHistoryCsv() {
@@ -1445,24 +1494,46 @@
         return;
       }
 
-      let csv = "HISTORICAL FOOD TEMPERATURE LOGS (WHOLE NUMBERS)\n\n";
-      csv += "Date,Checked By,Product Name,Category,Core Temp (°C),Core Status,T1 Temp (°C),T1 Status,Result\n";
+      let csv = "";
+      csv += "================================================================================\n";
+      csv += "** HISTORICAL FOOD TEMPERATURE LOGS REPORT **\n";
+      csv += "================================================================================\n\n";
+
+      csv += "** SECTION 1: EXPORT DETAILS **\n";
+      csv += `"Export Generated:",${csvEscape(new Date().toLocaleString())}\n`;
+      csv += `"Total Logged Days:",${historyIndex.length}\n`;
+      csv += `"Target Standards:",${csvEscape("Core Temp >= 200°C | T1 Temp >= 81°C")}\n\n`;
+
+      csv += "================================================================================\n";
+      csv += "** SECTION 2: HISTORICAL LOG ENTRIES **\n";
+      csv += "================================================================================\n";
+      csv += "Date,Day,Checked By,Product ID,Product Name,Category,Core Temp (°C),Core Status,T1 Temp (°C),T1 Status,Overall Result,Notes\n";
+
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
       historyIndex.forEach(d => {
         const data = JSON.parse(localStorage.getItem("temp_log_" + d) || "{}");
         const records = data.records || [];
-        const by = data.checkedBy || "";
+        const by = data.checkedBy || "Staff Member";
+        const dateObj = new Date(d + "T00:00:00");
+        const dayOfWeek = isNaN(dateObj) ? "" : dayNames[dateObj.getDay()];
+
+        csv += `\n** LOG DATE: ${d} (${dayOfWeek}) - INSPECTOR: ${by.toUpperCase()} **,,,,,,,,,,,\n`;
 
         records.forEach(r => {
           const core = r.coreTemp !== null ? Math.round(r.coreTemp) : "N/A";
           const coreStatus = r.coreTemp !== null ? (r.coreTemp >= 200 ? "PASS" : "FAIL") : "N/A";
           const t1 = r.t1Temp !== null ? Math.round(r.t1Temp) : "N/A";
           const t1Status = r.t1Temp !== null ? (r.t1Temp >= 81 ? "PASS" : "FAIL") : "N/A";
-          const result = (r.coreTemp >= 200 && r.t1Temp >= 81) ? "PASS" : "CHECK";
+          const result = (r.coreTemp !== null && r.coreTemp >= 200 && r.t1Temp !== null && r.t1Temp >= 81) ? "PASS" : "CHECK";
 
-          csv += `${csvEscape(d)},${csvEscape(by)},${csvEscape(r.name)},${csvEscape(r.category)},${core},${csvEscape(coreStatus)},${t1},${csvEscape(t1Status)},${csvEscape(result)}\n`;
+          csv += `${csvEscape(d)},${csvEscape(dayOfWeek)},${csvEscape(by)},${csvEscape(r.id)},${csvEscape(r.name)},${csvEscape(r.category)},${core},${csvEscape(coreStatus)},${t1},${csvEscape(t1Status)},${csvEscape(result)},""\n`;
         });
       });
+
+      csv += "\n================================================================================\n";
+      csv += "** END OF HISTORICAL REPORT **\n";
+      csv += "================================================================================\n";
 
       downloadFile(csv, `All_Temperature_Logs_${getTodayString()}.csv`, "text/csv");
       closeExportModal();

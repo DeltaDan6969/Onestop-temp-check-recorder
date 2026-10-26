@@ -36,74 +36,69 @@ object ReportExporter {
 
         file.printWriter(Charsets.UTF_8).use { out ->
             out.print("\uFEFF") // UTF-8 BOM for Microsoft Excel / Google Sheets
-            out.println("DAILY FOOD TEMPERATURE COMPLIANCE REPORT")
-            out.println("Date,${log.date}")
-            out.println("Day,${log.dayOfWeek}")
-            out.println("Checked By,${escapeCsv(log.checkedBy)}")
-            out.println("General Notes,${escapeCsv(log.notes ?: "")}")
+            out.println("================================================================================")
+            out.println("** DAILY FOOD TEMPERATURE COMPLIANCE REPORT **")
+            out.println("================================================================================")
             out.println()
-            out.println("Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Compliance,Notes")
 
-            for (record in records) {
-                val coreStr = record.coreTemp?.let { "${it.toInt()}" } ?: "N/A"
-                val coreStatus = when {
-                    record.coreTemp == null -> "Not Recorded"
-                    record.isCoreCompliant -> "PASS"
-                    else -> "FAIL (<200°C)"
-                }
-                val t1Str = record.t1Temp?.let { "${it.toInt()}" } ?: "N/A"
-                val t1Status = when {
-                    record.t1Temp == null -> "Not Recorded"
-                    record.isT1Compliant -> "PASS"
-                    else -> "FAIL (<81°C)"
-                }
-                val overall = when {
-                    record.coreTemp == null && record.t1Temp == null -> "PENDING"
-                    record.isCoreCompliant && record.isT1Compliant -> "PASS"
-                    else -> "NON-COMPLIANT"
-                }
-
-                out.println(
-                    "${escapeCsv(record.productId)}," +
-                    "${escapeCsv(record.productName)}," +
-                    "${escapeCsv(record.category)}," +
-                    "$coreStr," +
-                    "${escapeCsv(coreStatus)}," +
-                    "$t1Str," +
-                    "${escapeCsv(t1Status)}," +
-                    "${escapeCsv(overall)}," +
-                    escapeCsv(record.notes)
-                )
-            }
-        }
-        return file
-    }
-
-    fun exportAllToCsv(context: Context, logs: List<DailyLog>): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val fileName = "TempReport_All_${timeStamp}.csv"
-        val file = File(getReportsDir(context), fileName)
-
-        file.printWriter(Charsets.UTF_8).use { out ->
-            out.print("\uFEFF") // UTF-8 BOM for Microsoft Excel / Google Sheets
-            out.println("HISTORICAL DAILY FOOD TEMPERATURE LOGS EXPORT")
-            out.println("Export Date,$timeStamp")
-            out.println("Total Log Days,${logs.size}")
+            out.println("** SECTION 1: AUDIT INFORMATION **")
+            out.println("\"Audit Date:\",${escapeCsv(log.date)}")
+            out.println("\"Day of Week:\",${escapeCsv(log.dayOfWeek)}")
+            out.println("\"Checked By:\",${escapeCsv(log.checkedBy)}")
+            out.println("\"General Notes:\",${escapeCsv(log.notes ?: "")}")
+            out.println("\"Compliance Standard:\",${escapeCsv("Core Temp >= 200°C | T1 Temp >= 81°C")}")
             out.println()
-            out.println("Date,Day,Checked By,Product Name,Category,Core Temp (°C),Core Status,T1 Temp (°C),T1 Status,Overall Status,Notes")
 
-            for (log in logs) {
-                for (record in log.toProductRecords()) {
+            val total = records.size
+            val recorded = records.count { it.coreTemp != null || it.t1Temp != null }
+            val compliant = records.count { it.isCoreCompliant && it.isT1Compliant }
+            val nonCompliant = recorded - compliant
+            val passRate = if (total > 0) (compliant * 100 / total) else 0
+            val auditStatus = if (compliant == total && total > 0) "PASSED" else if (recorded == 0) "PENDING" else "ATTENTION REQUIRED"
+
+            out.println("================================================================================")
+            out.println("** SECTION 2: AUDIT SUMMARY & COMPLIANCE METRICS **")
+            out.println("================================================================================")
+            out.println("\"Total Products Audited:\",$total")
+            out.println("\"Readings Recorded:\",${escapeCsv("$recorded / $total")}")
+            out.println("\"Fully Compliant Items:\",$compliant")
+            out.println("\"Non-Compliant Items:\",$nonCompliant")
+            out.println("\"Overall Pass Rate:\",${escapeCsv("$passRate%")}")
+            out.println("\"Audit Outcome:\",${escapeCsv(auditStatus)}")
+            out.println()
+
+            out.println("================================================================================")
+            out.println("** SECTION 3: DETAILED PRODUCT TEMPERATURE LOG **")
+            out.println("================================================================================")
+            out.println("Product ID,Product Name,Category,Core Temp (°C),Core Status (>=200°C),T1 Temp (°C),T1 Status (>=81°C),Overall Compliance,Corrective Action / Notes")
+
+            // Group records by category for clarity
+            val categories = records.map { it.category }.distinct()
+            for (category in categories) {
+                out.println()
+                out.println("** CATEGORY: ${category.uppercase(Locale.ROOT)} **,,,,,,,,")
+                val categoryRecords = records.filter { it.category == category }
+                for (record in categoryRecords) {
                     val coreStr = record.coreTemp?.let { "${it.toInt()}" } ?: "N/A"
-                    val coreStatus = if (record.isCoreCompliant) "PASS" else if (record.coreTemp != null) "FAIL" else "N/A"
+                    val coreStatus = when {
+                        record.coreTemp == null -> "Not Recorded"
+                        record.isCoreCompliant -> "PASS"
+                        else -> "FAIL (<200°C)"
+                    }
                     val t1Str = record.t1Temp?.let { "${it.toInt()}" } ?: "N/A"
-                    val t1Status = if (record.isT1Compliant) "PASS" else if (record.t1Temp != null) "FAIL" else "N/A"
-                    val overall = if (record.isCoreCompliant && record.isT1Compliant) "PASS" else "CHECK"
+                    val t1Status = when {
+                        record.t1Temp == null -> "Not Recorded"
+                        record.isT1Compliant -> "PASS"
+                        else -> "FAIL (<81°C)"
+                    }
+                    val overall = when {
+                        record.coreTemp == null && record.t1Temp == null -> "PENDING"
+                        record.isCoreCompliant && record.isT1Compliant -> "PASS"
+                        else -> "NON-COMPLIANT"
+                    }
 
                     out.println(
-                        "${escapeCsv(log.date)}," +
-                        "${escapeCsv(log.dayOfWeek)}," +
-                        "${escapeCsv(log.checkedBy)}," +
+                        "${escapeCsv(record.productId)}," +
                         "${escapeCsv(record.productName)}," +
                         "${escapeCsv(record.category)}," +
                         "$coreStr," +
@@ -115,6 +110,73 @@ object ReportExporter {
                     )
                 }
             }
+
+            out.println()
+            out.println("================================================================================")
+            out.println("** SECTION 4: SUPERVISOR SIGN-OFF & VERIFICATION **")
+            out.println("================================================================================")
+            out.println("\"Staff / Inspector Signature:\",\"________________________________________\",\"Date:\",${escapeCsv(log.date)}")
+            out.println("\"Manager / Supervisor Signature:\",\"________________________________________\",\"Date:\",${escapeCsv(log.date)}")
+            out.println("\"Verification Declaration:\",${escapeCsv("I certify that all food temperatures recorded above were verified in accordance with statutory food safety and HACCP standards.")}")
+            out.println("================================================================================")
+        }
+        return file
+    }
+
+    fun exportAllToCsv(context: Context, logs: List<DailyLog>): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val fileName = "TempReport_All_${timeStamp}.csv"
+        val file = File(getReportsDir(context), fileName)
+
+        file.printWriter(Charsets.UTF_8).use { out ->
+            out.print("\uFEFF") // UTF-8 BOM for Microsoft Excel / Google Sheets
+            out.println("================================================================================")
+            out.println("** HISTORICAL DAILY FOOD TEMPERATURE LOGS EXPORT **")
+            out.println("================================================================================")
+            out.println()
+
+            out.println("** SECTION 1: EXPORT DETAILS **")
+            out.println("\"Export Generated:\",${escapeCsv(timeStamp)}")
+            out.println("\"Total Log Days:\",${logs.size}")
+            out.println("\"Target Standards:\",${escapeCsv("Core Temp >= 200°C | T1 Temp >= 81°C")}")
+            out.println()
+
+            out.println("================================================================================")
+            out.println("** SECTION 2: HISTORICAL TEMPERATURE RECORDS **")
+            out.println("================================================================================")
+            out.println("Date,Day,Checked By,Product ID,Product Name,Category,Core Temp (°C),Core Status,T1 Temp (°C),T1 Status,Overall Status,Notes")
+
+            for (log in logs) {
+                out.println()
+                out.println("** LOG DATE: ${log.date} (${log.dayOfWeek}) - INSPECTOR: ${log.checkedBy.uppercase(Locale.ROOT)} **,,,,,,,,,,,")
+                for (record in log.toProductRecords()) {
+                    val coreStr = record.coreTemp?.let { "${it.toInt()}" } ?: "N/A"
+                    val coreStatus = if (record.isCoreCompliant) "PASS" else if (record.coreTemp != null) "FAIL" else "N/A"
+                    val t1Str = record.t1Temp?.let { "${it.toInt()}" } ?: "N/A"
+                    val t1Status = if (record.isT1Compliant) "PASS" else if (record.t1Temp != null) "FAIL" else "N/A"
+                    val overall = if (record.isCoreCompliant && record.isT1Compliant) "PASS" else "CHECK"
+
+                    out.println(
+                        "${escapeCsv(log.date)}," +
+                        "${escapeCsv(log.dayOfWeek)}," +
+                        "${escapeCsv(log.checkedBy)}," +
+                        "${escapeCsv(record.productId)}," +
+                        "${escapeCsv(record.productName)}," +
+                        "${escapeCsv(record.category)}," +
+                        "$coreStr," +
+                        "${escapeCsv(coreStatus)}," +
+                        "$t1Str," +
+                        "${escapeCsv(t1Status)}," +
+                        "${escapeCsv(overall)}," +
+                        escapeCsv(record.notes)
+                    )
+                }
+            }
+
+            out.println()
+            out.println("================================================================================")
+            out.println("** END OF HISTORICAL REPORT **")
+            out.println("================================================================================")
         }
         return file
     }
